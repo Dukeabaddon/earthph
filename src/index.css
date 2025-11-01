@@ -1,0 +1,214 @@
+/* Custom Fonts - MUST be first before any other statements */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base Styles */
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply font-sans antialiased;
+  }
+
+  * {
+    @apply box-border;
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Leaflet overrides for better mobile experience */
+  .leaflet-container {
+    @apply h-full w-full;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .leaflet-popup-content-wrapper {
+    @apply rounded-lg shadow-lg;
+  }
+
+  .leaflet-popup-content {
+    @apply m-0;
+  }
+
+  /* Custom marker animation */
+  .custom-marker {
+    animation: markerPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes markerPulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  /* Seismic Ripple Effect for Recent Earthquakes - BLINKING RED BORDER */
+  .recent-earthquake-marker {
+    position: relative;
+    z-index: 2000 !important; /* Increased z-index for visibility when stacked */
+  }
+
+  /* BLINKING red border animation (hard on/off for maximum visibility) */
+  @keyframes redBorderBlink {
+    0%, 49% {
+      border: 5px solid #dc2626 !important;
+      box-shadow: 0 0 25px rgba(220, 38, 38, 0.9),
+                  0 0 40px rgba(220, 38, 38, 0.6),
+                  inset 0 0 10px rgba(220, 38, 38, 0.3);
+    }
+    50%, 99% {
+      border: 5px solid rgba(220, 38, 38, 0.3) !important;
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+    }
+  }
+
+  /* Apply BLINKING animation to recent markers */
+  .recent-earthquake-marker > div {
+    animation: redBorderBlink 1s infinite;
+    will-change: border-color, box-shadow; /* Performance optimization */
+  }
+
+  /* Ripple animation - Phase 1 (0-60 seconds) - Larger scale for visibility */
+  @keyframes seismicRipple {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.8);
+      opacity: 0;
+    }
+  }
+
+  .recent-earthquake-marker::before,
+  .recent-earthquake-marker::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid rgba(220, 38, 38, 0.9);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .recent-earthquake-marker::before {
+    animation: seismicRipple 2s ease-out infinite;
+  }
+
+  .recent-earthquake-marker::after {
+    animation: seismicRipple 2s ease-out infinite 0.7s;
+  }
+
+  /* Glow effect - Phase 2 (1-5 minutes) with cyan BLINKING */
+  .recent-glow-marker {
+    z-index: 1500 !important; /* Higher than normal, lower than Phase 1 */
+  }
+
+  @keyframes cyanBorderBlink {
+    0%, 49% {
+      border: 4px solid #06b6d4 !important;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.8),
+                  0 0 35px rgba(6, 182, 212, 0.5);
+    }
+    50%, 99% {
+      border: 4px solid rgba(6, 182, 212, 0.3) !important;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+  }
+
+  .recent-glow-marker > div {
+    animation: cyanBorderBlink 1.5s infinite;
+    will-change: border-color, box-shadow;
+  }
+
+  /* Accessibility: Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .recent-earthquake-marker::before,
+    .recent-earthquake-marker::after,
+    .recent-earthquake-marker > div,
+    .recent-glow-marker > div {
+      animation: none !important;
+    }
+    
+    /* Static bright borders for visibility without motion */
+    .recent-earthquake-marker > div {
+      border: 5px solid #dc2626 !important;
+      box-shadow: 0 0 25px rgba(220, 38, 38, 0.9) !important;
+    }
+    
+    .recent-glow-marker > div {
+      border: 4px solid #06b6d4 !important;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.8) !important;
+    }
+  }
+
+  /* Focus visible for accessibility */
+  .focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}
+
+/* Utility Styles */
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  /* Screen reader only */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .leaflet-control-zoom {
+    @apply scale-90;
+  }
+
+  .leaflet-bar {
+    @apply shadow-md;
+  }
+}
+
+/* Print styles */
+@media print {
+  header,
+  footer,
+  .leaflet-control-container {
+    @apply hidden;
+  }
+
+  body {
+    @apply bg-white;
+  }
+}
