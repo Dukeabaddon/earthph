@@ -77,6 +77,24 @@ setInterval(() => {
 export default async function handler(req, res) {
   const correlationId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
+  // Debug: Check if environment variables are available
+  if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
+    console.error('[ERROR] Missing environment variables:', {
+      hasUrl: !!process.env.VITE_SUPABASE_URL,
+      hasKey: !!process.env.VITE_SUPABASE_ANON_KEY,
+      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('VITE'))
+    });
+    return res.status(500).json({
+      success: false,
+      error: 'Configuration error',
+      message: 'Server configuration is incomplete',
+      debug: {
+        hasUrl: !!process.env.VITE_SUPABASE_URL,
+        hasKey: !!process.env.VITE_SUPABASE_ANON_KEY
+      }
+    });
+  }
+  
   // Initialize Supabase client inside handler to ensure env vars are available
   const supabase = createClient(
     process.env.VITE_SUPABASE_URL,
