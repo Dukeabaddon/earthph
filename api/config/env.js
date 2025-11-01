@@ -70,30 +70,36 @@ function validateJwt(value, name) {
 }
 
 // Load and validate Supabase configuration
-const SUPABASE_URL = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL', true);
-const SUPABASE_ANON_KEY = getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', true);
-const SUPABASE_SERVICE_ROLE_KEY = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', true);
+const SUPABASE_URL_VAL = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL', true);
+const SUPABASE_ANON_KEY_VAL = getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', true);
+const SUPABASE_SERVICE_ROLE_KEY_VAL = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', true);
 
 // Validate the values
-validateUrl(SUPABASE_URL, 'SUPABASE_URL');
-validateJwt(SUPABASE_ANON_KEY, 'SUPABASE_ANON_KEY');
-validateJwt(SUPABASE_SERVICE_ROLE_KEY, 'SUPABASE_SERVICE_ROLE_KEY');
+validateUrl(SUPABASE_URL_VAL, 'SUPABASE_URL');
+validateJwt(SUPABASE_ANON_KEY_VAL, 'SUPABASE_ANON_KEY');
+validateJwt(SUPABASE_SERVICE_ROLE_KEY_VAL, 'SUPABASE_SERVICE_ROLE_KEY');
 
 // Log successful configuration (without exposing secrets)
 console.log('[ENV] Configuration loaded successfully:', {
-  supabaseUrl: SUPABASE_URL,
-  hasAnonKey: !!SUPABASE_ANON_KEY,
-  hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
+  supabaseUrl: SUPABASE_URL_VAL,
+  hasAnonKey: !!SUPABASE_ANON_KEY_VAL,
+  hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY_VAL,
   environment: process.env.NODE_ENV || 'development'
 });
 
 // Export configuration
-module.exports = {
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY,
-  
-  // Export utility functions for other modules
+export const SUPABASE_URL = SUPABASE_URL_VAL;
+export const SUPABASE_ANON_KEY = SUPABASE_ANON_KEY_VAL;
+export const SUPABASE_SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY_VAL;
+
+// Export utility functions for other modules
+export { getEnvVar, validateUrl, validateJwt };
+
+// Also export as default for compatibility
+export default {
+  SUPABASE_URL: SUPABASE_URL_VAL,
+  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY_VAL,
+  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY_VAL,
   getEnvVar,
   validateUrl,
   validateJwt
