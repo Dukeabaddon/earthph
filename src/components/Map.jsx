@@ -472,9 +472,6 @@ export default function Map({ events = [], loading = false }) {
                 <span>Light shaking</span>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2 italic">
-              Click earthquake to view affected area
-            </p>
           </div>
         )}
       </div>
