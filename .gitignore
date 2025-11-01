@@ -31,6 +31,10 @@ yarn-error.log*
 coverage/
 .nyc_output/
 
+# Test files (development only)
+api/test*.js
+scripts/test*.js
+
 # Vercel
 .vercel/
 
