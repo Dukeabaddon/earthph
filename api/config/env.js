@@ -20,7 +20,12 @@
  * @throws {Error} If required variable is missing
  */
 function getEnvVar(primaryName, fallbackName, required = true) {
-  const value = process.env[primaryName] || process.env[fallbackName];
+  let value = process.env[primaryName] || process.env[fallbackName];
+  
+  // Trim whitespace that might have been added during configuration
+  if (value) {
+    value = value.trim();
+  }
   
   if (!value && required) {
     throw new Error(
@@ -47,8 +52,11 @@ function getEnvVar(primaryName, fallbackName, required = true) {
 function validateUrl(value, name) {
   if (!value) return;
   
+  // Trim whitespace
+  const trimmedValue = value.trim();
+  
   try {
-    new URL(value);
+    new URL(trimmedValue);
   } catch (err) {
     throw new Error(`Invalid URL in ${name}: ${value}`);
   }
@@ -63,9 +71,18 @@ function validateUrl(value, name) {
 function validateJwt(value, name) {
   if (!value) return;
   
-  const jwtPattern = /^eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/;
-  if (!jwtPattern.test(value)) {
-    throw new Error(`Invalid JWT format in ${name}`);
+  // Trim whitespace that might have been added during configuration
+  const trimmedValue = value.trim();
+  
+  // JWT pattern: Must have 3 parts separated by dots, each part base64url encoded
+  // More lenient pattern that allows for longer tokens
+  const jwtPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+  if (!jwtPattern.test(trimmedValue)) {
+    throw new Error(
+      `Invalid JWT format in ${name}. ` +
+      `Expected format: header.payload.signature (base64url encoded). ` +
+      `Received length: ${value.length}, starts with: ${value.substring(0, 20)}...`
+    );
   }
 }
 
