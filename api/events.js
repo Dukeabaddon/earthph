@@ -14,6 +14,7 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './config/env.js';
 
 // Cache configuration
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
@@ -77,28 +78,10 @@ setInterval(() => {
 export default async function handler(req, res) {
   const correlationId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Debug: Check if environment variables are available
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    console.error('[ERROR] Missing environment variables:', {
-      hasUrl: !!process.env.SUPABASE_URL,
-      hasKey: !!process.env.SUPABASE_ANON_KEY,
-      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
-    });
-    return res.status(500).json({
-      success: false,
-      error: 'Configuration error',
-      message: 'Server configuration is incomplete',
-      debug: {
-        hasUrl: !!process.env.SUPABASE_URL,
-        hasKey: !!process.env.SUPABASE_ANON_KEY
-      }
-    });
-  }
-  
   // Initialize Supabase client inside handler to ensure env vars are available
   const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY,
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
     {
       auth: {
         persistSession: false,
@@ -278,8 +261,8 @@ async function scrapeAndStore(correlationId, supabase) {
 
     // Initialize Supabase with service role key for writes
     const supabaseAdmin = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY,
       {
         auth: {
           persistSession: false,

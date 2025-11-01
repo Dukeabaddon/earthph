@@ -13,6 +13,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from './config/env.js';
 
 const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 
@@ -36,8 +37,8 @@ export default async function handler(req, res) {
   
   // Initialize Supabase with service role key inside handler
   const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY,
     {
       auth: {
         persistSession: false,
