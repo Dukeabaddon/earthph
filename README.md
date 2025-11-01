@@ -7,7 +7,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/tailwindcss-3.x-38bdf8)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![EarthPH Screenshot](docs/screenshot.png)
+![EarthPH - Interactive Earthquake Map](earthquake-map-preview.png)
+
 *Interactive earthquake monitoring map showing recent seismic activity across the Philippines*
 
 ---
