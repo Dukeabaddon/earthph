@@ -1,6 +1,4 @@
-/**
- * Simplified events endpoint - database query only
- */
+
 
 import { createClient } from '@supabase/supabase-js';
 import { getConfig } from './config/env.js';

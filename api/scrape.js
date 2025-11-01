@@ -1,15 +1,3 @@
-/**
- * Backend API: PHIVOLCS Web Scraper
- * 
- * Following backend-developer.md standards:
- * - Input validation and sanitization (SQL injection prevention)
- * - Rate limiting implementation
- * - Structured logging
- * - Transaction management with rollback capability
- * - Performance optimization
- * - Security measures (OWASP guidelines)
- */
-
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
@@ -21,21 +9,11 @@ const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 let lastScrapeTime = 0;
 const MIN_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-/**
- * GET /api/scrape
- * 
- * Scrapes PHIVOLCS website and stores events in database
- * Implements rate limiting and data validation
- * 
- * @returns {Object} JSON response with scrape results
- * @status 200 - Success
- * @status 429 - Rate limit exceeded
- * @status 500 - Server error
- */
+
 export default async function handler(req, res) {
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Load configuration lazily (ensures env vars are available in Vercel runtime)
+  // Load configuration lazily
   const config = getConfig();
   
   // Initialize Supabase with service role key inside handler
@@ -88,7 +66,7 @@ export default async function handler(req, res) {
   const startTime = Date.now();
 
   try {
-    // Step 1: Fetch HTML from PHIVOLCS
+    //Fetch from PHIVOLCS
     logInfo('[Scraper] Fetching PHIVOLCS data', { correlationId });
     
     const response = await axios.get(PHIVOLCS_URL, {
@@ -99,7 +77,7 @@ export default async function handler(req, res) {
       validateStatus: (status) => status === 200
     });
 
-    // Step 2: Parse HTML with Cheerio
+    // Parse HTML with Cheerio
     const $ = cheerio.load(response.data);
     const events = [];
     let skippedRows = 0;
@@ -160,7 +138,7 @@ export default async function handler(req, res) {
           return;
         }
 
-        // Generate unique ID (deterministic)
+        // Generate unique ID
         const id = generateEventId(occurred_at, latitude, longitude);
 
         events.push({
@@ -197,7 +175,7 @@ export default async function handler(req, res) {
       skippedRows
     });
 
-    // Step 3: Database transaction - Upsert events
+    //Database transaction - Upsert events
     if (events.length === 0) {
       return res.status(200).json({
         success: true,
@@ -227,7 +205,7 @@ export default async function handler(req, res) {
       throw error;
     }
 
-    // Step 4: Cleanup old events (24-hour retention based on when earthquake occurred)
+    //Cleanup old events (24-hour retention based on when earthquake occurred)
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { error: deleteError, count: deletedCount } = await supabase
       .from('events')
@@ -298,13 +276,7 @@ export default async function handler(req, res) {
   }
 }
 
-/**
- * Parse PHIVOLCS datetime format to ISO 8601
- * Format: "2025-01-15 - 10:30 AM" (Philippine Standard Time)
- * 
- * @param {string} dateTimeStr - PHIVOLCS datetime string
- * @returns {string|null} ISO 8601 datetime or null if invalid
- */
+
 function parsePhivolcsDateTime(dateTimeStr) {
   try {
     const [datePart, timePart] = dateTimeStr.split(' - ');
@@ -332,15 +304,7 @@ function parsePhivolcsDateTime(dateTimeStr) {
   }
 }
 
-/**
- * Generate deterministic event ID
- * Format: ISO8601_LAT_LON
- * 
- * @param {string} occurred_at - ISO datetime
- * @param {number} latitude - Latitude
- * @param {number} longitude - Longitude
- * @returns {string} Unique event ID
- */
+
 function generateEventId(occurred_at, latitude, longitude) {
   const timestamp = new Date(occurred_at).toISOString().replace(/[:.]/g, '-');
   const lat = latitude.toFixed(4).replace('.', '');

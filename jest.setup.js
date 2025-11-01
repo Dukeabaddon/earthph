@@ -45,14 +45,14 @@ global.L = {
     isValid: jest.fn(() => true),
   })),
   Icon: {
-    Default: jest.fn().mockImplementation(function() {
-      this._getIconUrl = jest.fn();
-    }),
+    Default: function() {},
   },
 };
 
-// Add static methods to Icon.Default
+// Mock Icon.Default as a constructor with prototype
 global.L.Icon.Default.prototype = {
   _getIconUrl: jest.fn(),
 };
+
+// Mock static method on Icon.Default
 global.L.Icon.Default.mergeOptions = jest.fn();

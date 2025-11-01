@@ -12,7 +12,48 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Map from '../../src/components/Map';
+
+// Mock leaflet BEFORE importing Map component
+jest.mock('leaflet', () => {
+  const mockL = {
+    map: jest.fn(() => ({
+      setView: jest.fn().mockReturnThis(),
+      fitBounds: jest.fn().mockReturnThis(),
+      on: jest.fn().mockReturnThis(),
+      off: jest.fn().mockReturnThis(),
+      remove: jest.fn(),
+      getZoom: jest.fn(() => 6),
+    })),
+    tileLayer: jest.fn(() => ({
+      addTo: jest.fn(),
+    })),
+    divIcon: jest.fn((options) => ({
+      options,
+      _initIcon: jest.fn(),
+      createIcon: jest.fn(),
+    })),
+    latLngBounds: jest.fn((coords) => ({
+      coords,
+      isValid: jest.fn(() => true),
+    })),
+    Icon: {
+      Default: function() {},
+    },
+  };
+  
+  // Set up Icon.Default.prototype
+  mockL.Icon.Default.prototype = {
+    _getIconUrl: jest.fn(),
+  };
+  
+  // Set up Icon.Default.mergeOptions as a static method
+  mockL.Icon.Default.mergeOptions = jest.fn();
+  
+  return {
+    __esModule: true,
+    default: mockL,
+  };
+});
 
 // Mock react-leaflet components
 jest.mock('react-leaflet', () => ({
@@ -30,19 +71,16 @@ jest.mock('react-leaflet', () => ({
   Popup: ({ children }) => <div data-testid="popup">{children}</div>,
   useMap: () => ({
     fitBounds: jest.fn(),
-    invalidateSize: jest.fn()
-  })
+    invalidateSize: jest.fn(),
+    on: jest.fn(),
+    off: jest.fn(),
+    getZoom: jest.fn(() => 6),
+  }),
+  Circle: () => <div data-testid="circle" />
 }));
 
-// Mock Leaflet
-jest.mock('leaflet', () => ({
-  divIcon: ({ html, className }) => ({
-    options: { html, className }
-  }),
-  latLngBounds: (points) => ({
-    isValid: () => points && points.length > 0
-  })
-}));
+// Import Map AFTER mocks are set up
+import Map from '../../src/components/Map';
 
 describe('Map Component - Rendering', () => {
   
@@ -188,52 +226,50 @@ describe('Map Component - Marker Color Logic', () => {
 describe('Map Component - Event Modal', () => {
   
   it('should trigger modal when marker is clicked', async () => {
-    const onEventSelect = jest.fn();
     const event = {
       id: '1',
       latitude: 14.5,
       longitude: 121.0,
       magnitude: 4.5,
-      occurred_at: '2025-11-01T02:00:00.000Z',
+      occurred_at: '2024-01-15T10:30:00.000Z',
       depth_km: 10,
       location_text: 'Test earthquake'
     };
 
-    render(<Map events={[event]} onEventSelect={onEventSelect} />);
+    render(<Map events={[event]} />);
     
     const marker = screen.getByTestId('marker');
     fireEvent.click(marker);
 
     await waitFor(() => {
-      expect(onEventSelect).toHaveBeenCalledWith(event);
+      // Check if modal is displayed with earthquake details
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Earthquake Details')).toBeInTheDocument();
+      expect(screen.getByText('4.5')).toBeInTheDocument(); // Magnitude
     });
   });
 
-  it('should pass correct event data to modal', async () => {
-    const onEventSelect = jest.fn();
+  it('should display correct event data in modal', async () => {
     const event = {
       id: '1',
       latitude: 14.5,
       longitude: 121.0,
       magnitude: 5.5,
-      occurred_at: '2025-11-01T02:00:00.000Z',
+      occurred_at: '2024-01-15T10:30:00.000Z',
       depth_km: 25,
       location_text: '10 km NE of Manila'
     };
 
-    render(<Map events={[event]} onEventSelect={onEventSelect} />);
+    render(<Map events={[event]} />);
     
     const marker = screen.getByTestId('marker');
     fireEvent.click(marker);
 
     await waitFor(() => {
-      expect(onEventSelect).toHaveBeenCalledWith(
-        expect.objectContaining({
-          magnitude: 5.5,
-          depth_km: 25,
-          location_text: '10 km NE of Manila'
-        })
-      );
+      // Check if modal displays the correct event data
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('5.5')).toBeInTheDocument(); // Magnitude
+      expect(screen.getByText(/14.50.*121.00/)).toBeInTheDocument(); // Coordinates
     });
   });
 });
