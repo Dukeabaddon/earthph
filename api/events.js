@@ -15,18 +15,6 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-// Initialize Supabase client with connection pooling
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  }
-);
-
 // Cache configuration
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
@@ -88,6 +76,18 @@ setInterval(() => {
  */
 export default async function handler(req, res) {
   const correlationId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Initialize Supabase client inside handler to ensure env vars are available
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL,
+    process.env.VITE_SUPABASE_ANON_KEY,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    }
+  );
   
   // Extract client IP address
   const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || 
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
 
     if (shouldRefresh) {
       logInfo('Cache stale, triggering scrape', { correlationId });
-      await scrapeAndStore(correlationId);
+      await scrapeAndStore(correlationId, supabase);
       lastScrapeTime = now;
     } else {
       logInfo('Cache fresh, skipping scrape', { 
@@ -252,8 +252,9 @@ function logError(message, data = {}) {
 /**
  * Scrape PHIVOLCS and store events in database
  * @param {string} correlationId - Request correlation ID
+ * @param {Object} supabase - Supabase client instance
  */
-async function scrapeAndStore(correlationId) {
+async function scrapeAndStore(correlationId, supabase) {
   try {
     logInfo('Starting PHIVOLCS scrape', { correlationId });
 

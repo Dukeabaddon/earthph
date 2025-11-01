@@ -20,18 +20,6 @@ const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 let lastScrapeTime = 0;
 const MIN_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-// Initialize Supabase with service role key for write operations
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  }
-);
-
 /**
  * GET /api/scrape
  * 
@@ -45,6 +33,18 @@ const supabase = createClient(
  */
 export default async function handler(req, res) {
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Initialize Supabase with service role key inside handler
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    }
+  );
   
   logInfo('[Scraper] Request received', { correlationId });
 
