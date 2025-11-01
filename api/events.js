@@ -52,18 +52,8 @@ function checkRateLimit(ip) {
   return { allowed: true, remaining: MAX_REQUESTS_PER_MINUTE - recentRequests.length };
 }
 
-// Clean up rate limit map every 5 minutes to prevent memory leak
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, timestamps] of rateLimitMap.entries()) {
-    const recentRequests = timestamps.filter(ts => now - ts < RATE_LIMIT_WINDOW_MS);
-    if (recentRequests.length === 0) {
-      rateLimitMap.delete(ip);
-    } else {
-      rateLimitMap.set(ip, recentRequests);
-    }
-  }
-}, 5 * 60 * 1000);
+// Note: Automatic cleanup removed for serverless compatibility
+// Rate limit map entries will be garbage collected when the function instance terminates
 
 /**
  * GET /api/events
