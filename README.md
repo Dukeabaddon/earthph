@@ -66,7 +66,7 @@ All earthquake data is provided by the **Philippine Institute of Volcanology and
 
 ## Live Application
 
-**Access EarthPH**: [https://your-app.vercel.app](https://your-app.vercel.app)
+**Access EarthPH**: [EarthPH](https://earth-ph.vercel.app/)
 
 *Note: The live URL will be updated after deployment*
 
@@ -90,16 +90,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - **[Leaflet.js](https://leafletjs.com/)** - Open-source mapping library
 - **[OpenStreetMap](https://www.openstreetmap.org/)** - Map tile providers
 - **Philippines DOST** - Department of Science and Technology
-
----
-
-## Support
-
-For questions, issues, or feedback:
-
-- **Email**: support@earthph.app *(update with your contact)*
-- **Issues**: [GitHub Issues](https://github.com/yourusername/earthph/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/earthph/discussions)
 
 ---
 

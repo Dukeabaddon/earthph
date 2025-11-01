@@ -149,13 +149,11 @@ function App() {
       <header className="bg-white shadow-md z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center p-1.5">
-              <img 
-                src={globeLogo} 
-                alt="EarthPH Globe Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <img 
+              src={globeLogo} 
+              alt="EarthPH Globe Logo" 
+              className="h-12 w-12 object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold text-gray-900">EarthPH</h1>
               <p className="text-xs text-gray-500">Real-time Earthquake Monitoring</p>
