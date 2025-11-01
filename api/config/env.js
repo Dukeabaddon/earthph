@@ -69,38 +69,51 @@ function validateJwt(value, name) {
   }
 }
 
-// Load and validate Supabase configuration
-const SUPABASE_URL_VAL = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL', true);
-const SUPABASE_ANON_KEY_VAL = getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', true);
-const SUPABASE_SERVICE_ROLE_KEY_VAL = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', true);
+// Lazy singleton configuration cache
+// This ensures env vars are loaded at RUNTIME (inside handler functions)
+// rather than at MODULE LOAD TIME, fixing Vercel serverless function lifecycle
+let _config = null;
 
-// Validate the values
-validateUrl(SUPABASE_URL_VAL, 'SUPABASE_URL');
-validateJwt(SUPABASE_ANON_KEY_VAL, 'SUPABASE_ANON_KEY');
-validateJwt(SUPABASE_SERVICE_ROLE_KEY_VAL, 'SUPABASE_SERVICE_ROLE_KEY');
-
-// Log successful configuration (without exposing secrets)
-console.log('[ENV] Configuration loaded successfully:', {
-  supabaseUrl: SUPABASE_URL_VAL,
-  hasAnonKey: !!SUPABASE_ANON_KEY_VAL,
-  hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY_VAL,
-  environment: process.env.NODE_ENV || 'development'
-});
-
-// Export configuration
-export const SUPABASE_URL = SUPABASE_URL_VAL;
-export const SUPABASE_ANON_KEY = SUPABASE_ANON_KEY_VAL;
-export const SUPABASE_SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY_VAL;
+/**
+ * Get configuration with lazy initialization and caching
+ * This function should be called inside handler functions to ensure
+ * environment variables are available in Vercel's serverless runtime
+ * 
+ * @returns {Object} Configuration object with Supabase credentials
+ */
+export function getConfig() {
+  if (!_config) {
+    // Load environment variables (only executes on first call)
+    const url = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL', true);
+    const anonKey = getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', true);
+    const serviceKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', true);
+    
+    // Validate the values
+    validateUrl(url, 'SUPABASE_URL');
+    validateJwt(anonKey, 'SUPABASE_ANON_KEY');
+    validateJwt(serviceKey, 'SUPABASE_SERVICE_ROLE_KEY');
+    
+    // Cache the configuration
+    _config = {
+      SUPABASE_URL: url,
+      SUPABASE_ANON_KEY: anonKey,
+      SUPABASE_SERVICE_ROLE_KEY: serviceKey
+    };
+    
+    // Log successful configuration (without exposing secrets)
+    console.log('[ENV] Configuration loaded successfully:', {
+      supabaseUrl: url,
+      hasAnonKey: !!anonKey,
+      hasServiceRoleKey: !!serviceKey,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  }
+  
+  return _config;
+}
 
 // Export utility functions for other modules
 export { getEnvVar, validateUrl, validateJwt };
 
-// Also export as default for compatibility
-export default {
-  SUPABASE_URL: SUPABASE_URL_VAL,
-  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY_VAL,
-  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY_VAL,
-  getEnvVar,
-  validateUrl,
-  validateJwt
-};
+// Export as default for compatibility
+export default getConfig;

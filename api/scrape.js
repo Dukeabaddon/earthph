@@ -13,7 +13,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from './config/env.js';
+import { getConfig } from './config/env.js';
 
 const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 
@@ -35,10 +35,13 @@ const MIN_INTERVAL = 5 * 60 * 1000; // 5 minutes
 export default async function handler(req, res) {
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
+  // Load configuration lazily (ensures env vars are available in Vercel runtime)
+  const config = getConfig();
+  
   // Initialize Supabase with service role key inside handler
   const supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY,
+    config.SUPABASE_URL,
+    config.SUPABASE_SERVICE_ROLE_KEY,
     {
       auth: {
         persistSession: false,

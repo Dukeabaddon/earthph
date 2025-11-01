@@ -14,7 +14,7 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './config/env.js';
+import { getConfig } from './config/env.js';
 
 // Cache configuration
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
@@ -78,10 +78,13 @@ setInterval(() => {
 export default async function handler(req, res) {
   const correlationId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
+  // Load configuration lazily (ensures env vars are available in Vercel runtime)
+  const config = getConfig();
+  
   // Initialize Supabase client inside handler to ensure env vars are available
   const supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY,
+    config.SUPABASE_URL,
+    config.SUPABASE_ANON_KEY,
     {
       auth: {
         persistSession: false,
@@ -259,10 +262,13 @@ async function scrapeAndStore(correlationId, supabase) {
   try {
     logInfo('Starting PHIVOLCS scrape', { correlationId });
 
+    // Load configuration lazily
+    const config = getConfig();
+
     // Initialize Supabase with service role key for writes
     const supabaseAdmin = createClient(
-      SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY,
+      config.SUPABASE_URL,
+      config.SUPABASE_SERVICE_ROLE_KEY || config.SUPABASE_ANON_KEY,
       {
         auth: {
           persistSession: false,
