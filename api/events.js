@@ -54,10 +54,13 @@ export default async function handler(req, res) {
       }
     );
     
-    // Query database
+    // Query database - only events from the last 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
     const { data, error } = await supabase
       .from('events')
       .select('id, occurred_at, latitude, longitude, depth_km, magnitude, location_text')
+      .gte('occurred_at', twentyFourHoursAgo)
       .order('occurred_at', { ascending: false })
       .limit(100);
     
@@ -79,6 +82,7 @@ export default async function handler(req, res) {
     const responseTime = Date.now() - startTime;
     
     res.status(200).json({
+      success: true,
       events: events || [],
       count: events?.length || 0,
       responseTime: `${responseTime}ms`
