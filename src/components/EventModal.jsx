@@ -77,13 +77,13 @@ export default function EventModal({ event, isOpen, onClose, position }) {
   if (!isOpen || !event) return null;
 
   const mag = formatMagnitude(event.magnitude);
-  const dateTime = formatDateTime(event.occurred_at);
+  const dateTime = formatDateTime(event.datetime);
 
   return (
     <>
       {/* Transparent backdrop - click to close */}
       <div 
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-[1100]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -91,7 +91,7 @@ export default function EventModal({ event, isOpen, onClose, position }) {
       {/* Compact popup near marker */}
       <div
         ref={modalRef}
-        className="fixed z-50 w-80 shadow-2xl rounded-lg overflow-hidden"
+        className="fixed z-[1200] w-80 shadow-2xl rounded-lg overflow-hidden"
         style={{
           top: `${adjustedPosition.top}px`,
           left: `${adjustedPosition.left}px`,
@@ -134,7 +134,7 @@ export default function EventModal({ event, isOpen, onClose, position }) {
               {/* Location Row */}
               <tr className="border-b border-gray-200">
                 <td className="px-3 py-1.5 font-medium text-gray-700 align-top">Location</td>
-                <td className="px-3 py-1.5 text-gray-900">{event.location_text}</td>
+                <td className="px-3 py-1.5 text-gray-900">{event.location}</td>
               </tr>
 
               {/* Coordinates Combined Row */}
@@ -148,7 +148,7 @@ export default function EventModal({ event, isOpen, onClose, position }) {
               {/* Depth Row */}
               <tr>
                 <td className="px-3 py-1.5 font-medium text-gray-700">Depth</td>
-                <td className="px-3 py-1.5 text-gray-900">{formatDepth(event.depth_km)}</td>
+                <td className="px-3 py-1.5 text-gray-900">{formatDepth(event.depth)}</td>
               </tr>
             </tbody>
           </table>
