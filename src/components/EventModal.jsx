@@ -11,6 +11,7 @@
  */
 
 import React, { useEffect, useCallback, useState, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { formatDateTime, timeAgo, formatMagnitude, formatDepth } from '../utils/dateFormat';
 
 /**
@@ -76,8 +77,21 @@ export default function EventModal({ event, isOpen, onClose, position }) {
 
   if (!isOpen || !event) return null;
 
-  const mag = formatMagnitude(event.magnitude);
-  const dateTime = formatDateTime(event.datetime);
+  // Date validation with fallback
+  let dateTime = { date: 'N/A', time: '', combined: 'Date unavailable' };
+  if (event.datetime) {
+    try {
+      // Check if datetime is valid before formatting
+      const testDate = new Date(event.datetime);
+      if (!isNaN(testDate.getTime())) {
+        dateTime = formatDateTime(event.datetime);
+      }
+    } catch (error) {
+      console.error('[EventModal] Date formatting error:', error);
+    }
+  }
+
+  const mag = formatMagnitude(event.magnitude || 0);
 
   return (
     <>
@@ -134,21 +148,21 @@ export default function EventModal({ event, isOpen, onClose, position }) {
               {/* Location Row */}
               <tr className="border-b border-gray-200">
                 <td className="px-3 py-1.5 font-medium text-gray-700 align-top">Location</td>
-                <td className="px-3 py-1.5 text-gray-900">{event.location}</td>
+                <td className="px-3 py-1.5 text-gray-900">{event.location || 'Location unknown'}</td>
               </tr>
 
               {/* Coordinates Combined Row */}
               <tr className="border-b border-gray-200">
                 <td className="px-3 py-1.5 font-medium text-gray-700">Coordinates</td>
                 <td className="px-3 py-1.5 text-gray-900 font-mono text-xs">
-                  {event.latitude.toFixed(2)}°N, {event.longitude.toFixed(2)}°E
+                  {(event.latitude ?? 0).toFixed(2)}°N, {(event.longitude ?? 0).toFixed(2)}°E
                 </td>
               </tr>
 
               {/* Depth Row */}
               <tr>
                 <td className="px-3 py-1.5 font-medium text-gray-700">Depth</td>
-                <td className="px-3 py-1.5 text-gray-900">{formatDepth(event.depth)}</td>
+                <td className="px-3 py-1.5 text-gray-900">{formatDepth(event.depth ?? 0)}</td>
               </tr>
             </tbody>
           </table>
@@ -165,3 +179,23 @@ export default function EventModal({ event, isOpen, onClose, position }) {
   );
 }
 
+// PropTypes validation
+EventModal.propTypes = {
+  event: PropTypes.shape({
+    id: PropTypes.number,
+    datetime: PropTypes.string,
+    magnitude: PropTypes.number,
+    latitude: PropTypes.number,
+    longitude: PropTypes.number,
+    depth: PropTypes.number,
+    location: PropTypes.string,
+    mmi_intensity: PropTypes.string,
+    event_type: PropTypes.string,
+  }),
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  position: PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
+  }),
+};

@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
+import PropTypes from 'prop-types';
 import 'leaflet/dist/leaflet.css';
 import EventModal from './EventModal';
 import { formatMagnitude, timeAgo } from '../utils/dateFormat';
@@ -385,6 +386,23 @@ export default function Map({ events = [], loading = false }) {
         </div>
       )}
 
+      {/* Empty State Overlay - No earthquakes found */}
+      {!loading && (!events || events.length === 0) && (
+        <div className="absolute inset-0 z-[1000] bg-white bg-opacity-90 flex items-center justify-center">
+          <div className="text-center px-4">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Earthquakes Detected</h3>
+            <p className="text-gray-600 text-sm max-w-sm">
+              There are currently no earthquake events to display. This could mean the monitoring system is running normally with no recent seismic activity.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Map Container */}
       <MapContainer
         center={defaultCenter}
@@ -478,3 +496,28 @@ export default function Map({ events = [], loading = false }) {
     </div>
   );
 }
+
+// PropTypes validation
+Map.propTypes = {
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      date: PropTypes.string.isRequired,
+      time: PropTypes.string.isRequired,
+      latitude: PropTypes.number.isRequired,
+      longitude: PropTypes.number.isRequired,
+      depth: PropTypes.number.isRequired,
+      magnitude: PropTypes.number.isRequired,
+      location: PropTypes.string.isRequired,
+      mmi_intensity: PropTypes.string,
+      event_type: PropTypes.string,
+      mmi_radii: PropTypes.arrayOf(
+        PropTypes.shape({
+          level: PropTypes.number.isRequired,
+          radius: PropTypes.number.isRequired,
+        })
+      ),
+    })
+  ),
+  loading: PropTypes.bool,
+};

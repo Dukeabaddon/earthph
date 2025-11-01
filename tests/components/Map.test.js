@@ -86,7 +86,7 @@ describe('Map Component - Rendering', () => {
   
   const mockEvents = [
     {
-      id: '1',
+      id: 1,
       latitude: 14.5995,
       longitude: 120.9842,
       magnitude: 7.5,
@@ -95,7 +95,7 @@ describe('Map Component - Rendering', () => {
       location_text: 'Manila, Philippines'
     },
     {
-      id: '2',
+      id: 2,
       latitude: 7.0731,
       longitude: 125.6128,
       magnitude: 3.2,
