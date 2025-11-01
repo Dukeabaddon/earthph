@@ -56,20 +56,31 @@ export default async function handler(req, res) {
     
     // Query database
     const { data, error } = await supabase
-      .from('earthquake_events')
-      .select('*')
-      .order('datetime', { ascending: false })
+      .from('events')
+      .select('id, occurred_at, latitude, longitude, depth_km, magnitude, location_text')
+      .order('occurred_at', { ascending: false })
       .limit(100);
     
     if (error) {
       throw error;
     }
     
+    // Transform data to match frontend expectations
+    const events = (data || []).map(event => ({
+      id: event.id,
+      datetime: event.occurred_at,
+      latitude: event.latitude,
+      longitude: event.longitude,
+      depth: event.depth_km,
+      magnitude: event.magnitude,
+      location: event.location_text
+    }));
+    
     const responseTime = Date.now() - startTime;
     
     res.status(200).json({
-      events: data || [],
-      count: data?.length || 0,
+      events: events || [],
+      count: events?.length || 0,
       responseTime: `${responseTime}ms`
     });
     
