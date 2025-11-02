@@ -27,6 +27,18 @@ export default async function handler(req, res) {
   const startTime = Date.now();
   
   try {
+    // Check for automation bypass secret (allow public access with valid secret)
+    const bypassSecret = req.headers['x-vercel-protection-bypass'];
+    const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    
+    // Require bypass secret for API access
+    if (!bypassSecret || bypassSecret !== validSecret) {
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Valid x-vercel-protection-bypass header required'
+      });
+    }
+    
     // Get client IP
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
     
