@@ -46,7 +46,24 @@ export default async function handler(req, res) {
   const bypassSecret = req.headers['x-vercel-protection-bypass'];
   const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   
+  // Debug logging
+  logInfo('[Scraper] Bypass validation', {
+    correlationId,
+    hasHeader: !!bypassSecret,
+    hasEnvVar: !!validSecret,
+    headerLength: bypassSecret?.length,
+    envVarLength: validSecret?.length
+  });
+  
   // Validate bypass secret (required for external automation)
+  if (!validSecret) {
+    logError('[Scraper] VERCEL_AUTOMATION_BYPASS_SECRET not configured', { correlationId });
+    return res.status(500).json({ 
+      error: 'Configuration Error',
+      message: 'Server authentication not configured'
+    });
+  }
+  
   if (!bypassSecret || bypassSecret !== validSecret) {
     logWarning('[Scraper] Unauthorized access attempt', { 
       correlationId,

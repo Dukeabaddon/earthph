@@ -31,8 +31,29 @@ export default async function handler(req, res) {
     const bypassSecret = req.headers['x-vercel-protection-bypass'];
     const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
     
+    // Debug logging
+    console.log('[Events] Bypass validation', {
+      hasHeader: !!bypassSecret,
+      hasEnvVar: !!validSecret,
+      headerLength: bypassSecret?.length,
+      envVarLength: validSecret?.length
+    });
+    
+    // Check if environment variable is configured
+    if (!validSecret) {
+      console.error('[Events] VERCEL_AUTOMATION_BYPASS_SECRET not configured');
+      return res.status(500).json({ 
+        error: 'Configuration Error',
+        message: 'Server authentication not configured'
+      });
+    }
+    
     // Require bypass secret for API access
     if (!bypassSecret || bypassSecret !== validSecret) {
+      console.warn('[Events] Unauthorized access attempt', {
+        hasSecret: !!bypassSecret,
+        ip: req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown'
+      });
       return res.status(401).json({ 
         error: 'Unauthorized',
         message: 'Valid x-vercel-protection-bypass header required'
