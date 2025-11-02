@@ -53,8 +53,12 @@ module.exports = async function handler(req, res) {
 
     console.log(`[${correlationId}] Starting scrape`);
 
-    // Fetch PHIVOLCS data
-    const response = await axios.get(PHIVOLCS_URL, { timeout: 8000 });
+    // Fetch PHIVOLCS data (disable SSL verification due to their certificate issues)
+    const https = require('https');
+    const response = await axios.get(PHIVOLCS_URL, { 
+      timeout: 8000,
+      httpsAgent: new https.Agent({ rejectUnauthorized: false })
+    });
     const $ = cheerio.load(response.data);
     
     const events = [];
