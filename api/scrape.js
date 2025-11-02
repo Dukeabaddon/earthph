@@ -13,27 +13,11 @@ const MIN_INTERVAL = 5 * 60 * 1000; // 5 minutes
 export default async function handler(req, res) {
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Load configuration lazily
-  const config = getConfig();
-  
-  // Initialize Supabase with service role key inside handler
-  const supabase = createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    }
-  );
-  
-  logInfo('[Scraper] Request received', { correlationId });
-
-  // CORS headers
+  // Set CORS headers immediately
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
+  // Handle OPTIONS requests early
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -42,37 +26,81 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Check for automation bypass secret
+  // CRITICAL: Validate bypass secret BEFORE loading config or initializing anything
+  // This prevents crashes from missing Supabase env vars before we can return proper error
   const bypassSecret = req.headers['x-vercel-protection-bypass'];
   const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   
   // Debug logging
-  logInfo('[Scraper] Bypass validation', {
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level: 'INFO',
+    message: '[Scraper] Bypass validation',
     correlationId,
     hasHeader: !!bypassSecret,
     hasEnvVar: !!validSecret,
     headerLength: bypassSecret?.length,
-    envVarLength: validSecret?.length
-  });
+    envVarLength: validSecret?.length,
+    allEnvVars: Object.keys(process.env).filter(k => k.includes('VERCEL') || k.includes('SUPABASE'))
+  }));
   
   // Validate bypass secret (required for external automation)
   if (!validSecret) {
-    logError('[Scraper] VERCEL_AUTOMATION_BYPASS_SECRET not configured', { correlationId });
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'ERROR',
+      message: '[Scraper] VERCEL_AUTOMATION_BYPASS_SECRET not configured',
+      correlationId
+    }));
     return res.status(500).json({ 
       error: 'Configuration Error',
-      message: 'Server authentication not configured'
+      message: 'Server authentication not configured',
+      correlationId
     });
   }
   
   if (!bypassSecret || bypassSecret !== validSecret) {
-    logWarning('[Scraper] Unauthorized access attempt', { 
+    console.warn(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'WARN',
+      message: '[Scraper] Unauthorized access attempt',
       correlationId,
       hasSecret: !!bypassSecret,
       ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
-    });
+    }));
     return res.status(401).json({ 
       error: 'Unauthorized',
-      message: 'Valid x-vercel-protection-bypass header required'
+      message: 'Valid x-vercel-protection-bypass header required',
+      correlationId
+    });
+  }
+
+  // Now that we're authenticated, load configuration and initialize Supabase
+  let config, supabase;
+  try {
+    config = getConfig();
+    supabase = createClient(
+      config.SUPABASE_URL,
+      config.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      }
+    );
+    
+    logInfo('[Scraper] Request received and authenticated', { correlationId });
+  } catch (error) {
+    logError('[Scraper] Configuration initialization failed', { 
+      correlationId,
+      error: error.message 
+    });
+    return res.status(500).json({
+      error: 'Configuration Error',
+      message: 'Failed to initialize server configuration',
+      details: error.message,
+      correlationId
     });
   }
 

@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   const startTime = Date.now();
   
   try {
-    // Check for automation bypass secret (allow public access with valid secret)
+    // CRITICAL: Validate bypass secret BEFORE loading config
     const bypassSecret = req.headers['x-vercel-protection-bypass'];
     const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
     
@@ -36,7 +36,8 @@ export default async function handler(req, res) {
       hasHeader: !!bypassSecret,
       hasEnvVar: !!validSecret,
       headerLength: bypassSecret?.length,
-      envVarLength: validSecret?.length
+      envVarLength: validSecret?.length,
+      allEnvVars: Object.keys(process.env).filter(k => k.includes('VERCEL') || k.includes('SUPABASE'))
     });
     
     // Check if environment variable is configured
@@ -60,6 +61,31 @@ export default async function handler(req, res) {
       });
     }
     
+    // Now load config and create Supabase client
+    let config, supabase;
+    try {
+      config = getConfig();
+      supabase = createClient(
+        config.SUPABASE_URL,
+        config.SUPABASE_ANON_KEY,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false
+          }
+        }
+      );
+    } catch (error) {
+      console.error('[Events] Configuration initialization failed', { 
+        error: error.message 
+      });
+      return res.status(500).json({
+        error: 'Configuration Error',
+        message: 'Failed to initialize server configuration',
+        details: error.message
+      });
+    }
+    
     // Get client IP
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
     
@@ -71,19 +97,6 @@ export default async function handler(req, res) {
         message: 'Too many requests. Please try again later.'
       });
     }
-    
-    // Get config and create Supabase client
-    const config = getConfig();
-    const supabase = createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_ANON_KEY,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false
-        }
-      }
-    );
     
     // Query database - only events from the last 24 hours
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
