@@ -33,7 +33,7 @@ function App() {
       if (showLoading) setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await fetchEvents(100);
+      const { data, error: fetchError } = await fetchEvents(500); // Increased to 500 to match API limit
 
       if (fetchError) {
         throw fetchError;

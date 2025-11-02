@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       .select('id, occurred_at, latitude, longitude, depth_km, magnitude, location_text, created_at')
       .gte('occurred_at', twentyFourHoursAgo)
       .order('occurred_at', { ascending: false })
-      .limit(100);
+      .limit(500); // Increased from 100 to 500 to handle high earthquake activity days
     
     if (error) {
       throw error;
