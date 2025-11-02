@@ -109,7 +109,7 @@ module.exports = async function handler(req, res) {
 
     // Upsert to database
     if (events.length > 0) {
-      const { error } = await supabase.from('earthquakes').upsert(events, { onConflict: 'id' });
+      const { error } = await supabase.from('events').upsert(events, { onConflict: 'id' });
       if (error) throw error;
     }
 
