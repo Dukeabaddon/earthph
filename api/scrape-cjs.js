@@ -7,41 +7,107 @@ const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 let lastScrapeTime = 0;
 const MIN_INTERVAL = 5 * 60 * 1000;
 
+/**
+ * Set security headers for protected scraper endpoint
+ */
+function setSecurityHeaders(res) {
+  // Security headers (OWASP recommendations)
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+}
+
+/**
+ * Log scraper request for security monitoring
+ */
+function logRequest(req, res, duration, scraped = 0, error = null) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    ip: req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
+    status: res.statusCode,
+    duration: `${duration}ms`,
+    eventsScraped: scraped,
+    error: error ? error.message : null,
+    authenticated: !!req.headers['x-vercel-protection-bypass']
+  };
+  
+  console.log(JSON.stringify(logEntry));
+  
+  // Alert on security issues
+  if (res.statusCode === 401) {
+    console.warn(`[SECURITY] Unauthorized scraper access attempt: IP=${logEntry.ip}, UA=${logEntry.userAgent}`);
+  }
+  if (error) {
+    console.error(`[ERROR] Scraper failed: ${error.message}`, logEntry);
+  }
+}
+
 module.exports = async function handler(req, res) {
+  const startTime = Date.now();
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-
-  // Validate bypass secret
-  const bypassSecret = req.headers['x-vercel-protection-bypass'];
-  const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-  
-  if (!validSecret) {
-    return res.status(500).json({ 
-      error: 'Configuration Error',
-      message: 'VERCEL_AUTOMATION_BYPASS_SECRET not configured'
-    });
-  }
-  
-  if (!bypassSecret || bypassSecret !== validSecret) {
-    return res.status(401).json({ 
-      error: 'Unauthorized',
-      message: 'Valid x-vercel-protection-bypass header required'
-    });
-  }
-
   try {
+    // Set security headers
+    setSecurityHeaders(res);
+    
+    // Handle OPTIONS preflight
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    
+    // Only allow GET requests
+    if (req.method !== 'GET') {
+      const duration = Date.now() - startTime;
+      logRequest(req, res, duration, 0, new Error('Method not allowed'));
+      return res.status(405).json({ 
+        success: false,
+        error: 'Method not allowed',
+        message: 'Only GET requests are supported'
+      });
+    }
+
+    // Validate bypass secret
+    const bypassSecret = req.headers['x-vercel-protection-bypass'];
+    const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    
+    if (!validSecret) {
+      const duration = Date.now() - startTime;
+      res.statusCode = 500;
+      logRequest(req, res, duration, 0, new Error('Configuration missing'));
+      return res.status(500).json({ 
+        success: false,
+        error: 'Configuration Error',
+        message: 'VERCEL_AUTOMATION_BYPASS_SECRET not configured'
+      });
+    }
+    
+    if (!bypassSecret || bypassSecret !== validSecret) {
+      const duration = Date.now() - startTime;
+      res.statusCode = 401;
+      logRequest(req, res, duration, 0, new Error('Unauthorized access attempt'));
+      return res.status(401).json({ 
+        success: false,
+        error: 'Unauthorized',
+        message: 'Valid x-vercel-protection-bypass header required'
+      });
+    }
+
     // Get Supabase credentials from environment
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseUrl || !supabaseKey) {
+      const duration = Date.now() - startTime;
+      res.statusCode = 500;
+      logRequest(req, res, duration, 0, new Error('Configuration missing'));
       return res.status(500).json({
+        success: false,
         error: 'Configuration Error',
         message: 'Supabase credentials not configured'
       });
@@ -113,15 +179,24 @@ module.exports = async function handler(req, res) {
       if (error) throw error;
     }
 
+    const duration = Date.now() - startTime;
+    logRequest(req, res, duration, events.length);
+
     return res.status(200).json({
       success: true,
       message: `Scraped ${events.length} events`,
+      eventsScraped: events.length,
+      duration: `${duration}ms`,
       correlationId
     });
 
   } catch (error) {
-    console.error(`[${correlationId}] Error:`, error);
+    const duration = Date.now() - startTime;
+    res.statusCode = 500;
+    logRequest(req, res, duration, 0, error);
+    
     return res.status(500).json({
+      success: false,
       error: error.message,
       correlationId
     });
