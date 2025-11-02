@@ -42,9 +42,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check for automation bypass secret
+  const bypassSecret = req.headers['x-vercel-protection-bypass'];
+  const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  
+  // Validate bypass secret (required for external automation)
+  if (!bypassSecret || bypassSecret !== validSecret) {
+    logWarning('[Scraper] Unauthorized access attempt', { 
+      correlationId,
+      hasSecret: !!bypassSecret,
+      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    });
+    return res.status(401).json({ 
+      error: 'Unauthorized',
+      message: 'Valid x-vercel-protection-bypass header required'
+    });
+  }
+
   // Check if request is from Vercel Cron
   const isCronJob = req.headers['user-agent']?.includes('vercel-cron') || 
                     req.headers['x-vercel-cron'] === '1';
+
+  logInfo('[Scraper] Authorized request', { correlationId, isCronJob });
 
   // Rate limiting check (skip for cron jobs)
   if (!isCronJob) {
