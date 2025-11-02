@@ -173,10 +173,19 @@ module.exports = async function handler(req, res) {
 
     console.log(`[${correlationId}] Parsed ${events.length} events`);
 
-    // Upsert to database
+    // Upsert to database (Supabase v2 syntax - uses primary key automatically)
     if (events.length > 0) {
-      const { error } = await supabase.from('events').upsert(events, { onConflict: 'id' });
-      if (error) throw error;
+      const { data, error } = await supabase.from('events').upsert(events).select();
+      if (error) {
+        console.error(`[${correlationId}] Database upsert failed:`, {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          eventsCount: events.length
+        });
+        throw error;
+      }
+      console.log(`[${correlationId}] Successfully upserted ${data?.length || events.length} events`);
     }
 
     const duration = Date.now() - startTime;

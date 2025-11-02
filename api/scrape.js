@@ -257,13 +257,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Upsert with conflict resolution
+    // Upsert with conflict resolution (Supabase v2 syntax - uses primary key automatically)
     const { data, error } = await supabase
       .from('events')
-      .upsert(events, { 
-        onConflict: 'id',
-        ignoreDuplicates: false 
-      })
+      .upsert(events)
       .select();
 
     if (error) {
@@ -271,10 +268,19 @@ export default async function handler(req, res) {
         correlationId,
         error: error.message,
         code: error.code,
-        hint: error.hint
+        hint: error.hint,
+        details: error.details,
+        eventsCount: events.length
       });
       throw error;
     }
+
+    // Log successful upsert
+    logInfo('[Scraper] Database upsert successful', {
+      correlationId,
+      eventsUpserted: data?.length || events.length,
+      sampleEventId: data?.[0]?.id || events[0]?.id
+    });
 
     //Cleanup old events (24-hour retention based on when earthquake occurred)
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
