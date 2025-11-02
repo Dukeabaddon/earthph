@@ -49,12 +49,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
  * - Let backend handle scraping, caching, and data fetching
  * - Standardized error responses
  * 
+ * Updated to use events-cjs (CommonJS public endpoint) instead of events (ESM with auth)
+ * - No authentication required for public access
+ * - Works with Vercel's CommonJS compilation
+ * 
  * @param {number} limit - Maximum number of events to fetch (default: 100)
  * @returns {Promise<{data: Array, error: Error|null, cached: boolean}>}
  */
 export async function fetchEvents(limit = 100) {
   try {
-    const response = await fetch('/api/events');
+    const response = await fetch('/api/events-cjs');
     const result = await response.json();
 
     if (!response.ok) {
