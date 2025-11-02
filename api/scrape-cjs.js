@@ -62,10 +62,13 @@ module.exports = async function handler(req, res) {
     const $ = cheerio.load(response.data);
     
     const events = [];
-    const table = $('#eqDataTable tbody');
+    // The earthquake table is the 3rd table (index 2) on the page
+    const table = $('table').eq(2).find('tbody');
     
     table.find('tr').each((index, row) => {
-      if (index >= 500) return false; // Limit to 500
+      // Skip header row (first row)
+      if (index === 0) return;
+      if (index >= 501) return false; // Limit to 500 events
       
       const cells = $(row).find('td');
       if (cells.length < 6) return;
