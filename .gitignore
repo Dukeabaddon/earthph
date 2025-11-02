@@ -49,3 +49,10 @@ scripts/test*.js
 Instructions/
 docs/
 DEPLOYMENT.md
+
+"crons": [
+  {
+    "path": "/api/scrape",
+    "schedule": "*/5 * * * *"
+  }
+]
