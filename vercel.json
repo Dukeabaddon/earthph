@@ -8,6 +8,15 @@
       "memory": 1024
     }
   },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "headers": {
+        "x-vercel-protection-bypass": "true"
+      },
+      "dest": "/api/$1"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
