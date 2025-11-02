@@ -1,6 +1,7 @@
 {
   "name": "earthph",
   "version": "1.0.0",
+  "type": "module",
   "description": "Real-time earthquake monitoring system for the Philippines using PHIVOLCS data",
   "private": true,
   "scripts": {
