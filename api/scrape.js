@@ -42,27 +42,33 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Rate limiting check
-  const now = Date.now();
-  const timeSinceLastScrape = now - lastScrapeTime;
+  // Check if request is from Vercel Cron
+  const isCronJob = req.headers['user-agent']?.includes('vercel-cron') || 
+                    req.headers['x-vercel-cron'] === '1';
 
-  if (timeSinceLastScrape < MIN_INTERVAL) {
-    const retryAfter = Math.ceil((MIN_INTERVAL - timeSinceLastScrape) / 1000);
-    logWarn('[Scraper] Rate limit exceeded', {
-      correlationId,
-      retryAfter
-    });
-    
-    return res.status(429).json({
-      success: false,
-      error: 'Rate limit exceeded',
-      message: 'Please wait before scraping again',
-      retry_after: retryAfter,
-      timestamp: new Date().toISOString()
-    });
+  // Rate limiting check (skip for cron jobs)
+  if (!isCronJob) {
+    const now = Date.now();
+    const timeSinceLastScrape = now - lastScrapeTime;
+
+    if (timeSinceLastScrape < MIN_INTERVAL) {
+      const retryAfter = Math.ceil((MIN_INTERVAL - timeSinceLastScrape) / 1000);
+      logWarn('[Scraper] Rate limit exceeded', {
+        correlationId,
+        retryAfter
+      });
+      
+      return res.status(429).json({
+        success: false,
+        error: 'Rate limit exceeded',
+        message: 'Please wait before scraping again',
+        retry_after: retryAfter,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 
-  lastScrapeTime = now;
+  lastScrapeTime = Date.now();
   const startTime = Date.now();
 
   try {
@@ -126,8 +132,9 @@ export default async function handler(req, res) {
           return;
         }
 
-        // Validate coordinate ranges (Philippines bounds)
-        if (latitude < 4.5 || latitude > 21.0 || longitude < 116.0 || longitude > 127.0) {
+        // Validate coordinate ranges (Philippines + surrounding waters)
+        // Extended bounds to include offshore earthquakes
+        if (latitude < 4.0 || latitude > 22.0 || longitude < 116.0 || longitude > 128.0) {
           skippedRows++;
           logWarn('[Scraper] Coordinates out of bounds', {
             correlationId,
@@ -279,10 +286,29 @@ export default async function handler(req, res) {
 
 function parsePhivolcsDateTime(dateTimeStr) {
   try {
+    // PHIVOLCS format: "02 November 2025 - 11:19 AM"
     const [datePart, timePart] = dateTimeStr.split(' - ');
     if (!datePart || !timePart) return null;
 
-    const [year, month, day] = datePart.split('-').map(Number);
+    // Parse date part: "02 November 2025"
+    const dateTokens = datePart.trim().split(' ');
+    if (dateTokens.length !== 3) return null;
+    
+    const day = parseInt(dateTokens[0]);
+    const monthName = dateTokens[1];
+    const year = parseInt(dateTokens[2]);
+    
+    // Convert month name to number
+    const months = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4,
+      'May': 5, 'June': 6, 'July': 7, 'August': 8,
+      'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+    
+    const month = months[monthName];
+    if (!month || !day || !year) return null;
+
+    // Parse time part: "11:19 AM"
     const timeMatch = timePart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
     if (!timeMatch) return null;
 

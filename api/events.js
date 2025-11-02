@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     
     const { data, error } = await supabase
       .from('events')
-      .select('id, occurred_at, latitude, longitude, depth_km, magnitude, location_text')
+      .select('id, occurred_at, latitude, longitude, depth_km, magnitude, location_text, created_at')
       .gte('occurred_at', twentyFourHoursAgo)
       .order('occurred_at', { ascending: false })
       .limit(100);
@@ -65,6 +65,14 @@ export default async function handler(req, res) {
     if (error) {
       throw error;
     }
+    
+    // Find the most recent created_at timestamp (when data was last scraped)
+    const lastUpdated = data && data.length > 0 
+      ? data.reduce((latest, event) => {
+          const eventCreated = new Date(event.created_at).getTime();
+          return eventCreated > latest ? eventCreated : latest;
+        }, 0)
+      : Date.now();
     
     // Transform data to match frontend expectations
     const events = (data || []).map(event => ({
@@ -83,6 +91,7 @@ export default async function handler(req, res) {
       success: true,
       events: events || [],
       count: events?.length || 0,
+      lastUpdated: new Date(lastUpdated).toISOString(),
       responseTime: `${responseTime}ms`
     });
     

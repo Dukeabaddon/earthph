@@ -20,6 +20,17 @@
       ]
     },
     {
+      "source": "/api/events",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
+        { "key": "Content-Security-Policy", "value": "default-src 'none'; frame-ancestors 'none'" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Cache-Control", "value": "public, s-maxage=300, stale-while-revalidate=60" }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
@@ -33,7 +44,7 @@
   "crons": [
     {
       "path": "/api/scrape",
-      "schedule": "0 0 * * *"
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [
