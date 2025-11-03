@@ -185,8 +185,8 @@ module.exports = async function handler(req, res) {
     
     const responseTime = Date.now() - startTime;
     
-    // Set cache headers
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60');
+    // Set cache headers (60s to match frontend polling and cron frequency)
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=15');
     res.setHeader('X-Response-Time', `${responseTime}ms`);
     res.setHeader('X-Rate-Limit-Remaining', rateLimit.remaining.toString());
     
