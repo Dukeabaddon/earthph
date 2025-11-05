@@ -35,11 +35,11 @@ export default async function handler(req, res) {
       .from('events')
       .select('*', { count: 'exact', head: true });
     
-    // Delete old events based on occurred_at timestamp
+    // Delete old events based on created_at timestamp (when record was added)
     const { error: deleteError, count: deletedCount } = await supabase
       .from('events')
       .delete()
-      .lt('occurred_at', cutoffTime);
+      .lt('created_at', cutoffTime);
     
     if (deleteError) {
       throw deleteError;

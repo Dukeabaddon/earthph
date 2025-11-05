@@ -282,12 +282,12 @@ export default async function handler(req, res) {
       sampleEventId: data?.[0]?.id || events[0]?.id
     });
 
-    //Cleanup old events (24-hour retention based on when earthquake occurred)
+    //Cleanup old events (24-hour retention based on when record was added)
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { error: deleteError, count: deletedCount } = await supabase
       .from('events')
       .delete()
-      .lt('occurred_at', cutoffTime);
+      .lt('created_at', cutoffTime);
 
     if (deleteError) {
       logWarn('[Scraper] Cleanup warning', {

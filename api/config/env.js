@@ -1,24 +1,3 @@
-/**
- * Environment Variable Configuration Utility
- * 
- * Provides smart environment variable resolution with fallback logic
- * to support both Vercel serverless functions and local Vite development.
- * 
- * Following backend-security.md principles:
- * - Defense in depth (multiple variable sources)
- * - Environment-aware configuration
- * - Validation at startup
- * - Secure logging (no secret exposure)
- */
-
-/**
- * Get environment variable with fallback support
- * @param {string} primaryName - Primary variable name (e.g., 'SUPABASE_URL')
- * @param {string} fallbackName - Fallback variable name (e.g., 'VITE_SUPABASE_URL')
- * @param {boolean} required - Whether the variable is required
- * @returns {string|null} Variable value or null if not found and not required
- * @throws {Error} If required variable is missing
- */
 function getEnvVar(primaryName, fallbackName, required = true) {
   let value = process.env[primaryName] || process.env[fallbackName];
   
@@ -45,9 +24,6 @@ function getEnvVar(primaryName, fallbackName, required = true) {
 
 /**
  * Validate that a value looks like a valid URL
- * @param {string} value - Value to validate
- * @param {string} name - Variable name (for error messages)
- * @throws {Error} If value is not a valid URL
  */
 function validateUrl(value, name) {
   if (!value) return;
@@ -64,9 +40,6 @@ function validateUrl(value, name) {
 
 /**
  * Validate that a value looks like a JWT token
- * @param {string} value - Value to validate
- * @param {string} name - Variable name (for error messages)
- * @throws {Error} If value is not a valid JWT format
  */
 function validateJwt(value, name) {
   if (!value) return;
@@ -93,10 +66,6 @@ let _config = null;
 
 /**
  * Get configuration with lazy initialization and caching
- * This function should be called inside handler functions to ensure
- * environment variables are available in Vercel's serverless runtime
- * 
- * @returns {Object} Configuration object with Supabase credentials
  */
 export function getConfig() {
   if (!_config) {
