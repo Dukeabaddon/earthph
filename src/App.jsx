@@ -106,12 +106,27 @@ function App() {
           <div className="flex items-center gap-3">
             <img 
               src={globeLogo} 
-              alt="EarthPH Globe Logo" 
+              alt="EarthPH Philippines Earthquake Monitoring Globe Logo" 
               className="h-12 w-12 object-contain"
             />
             <div>
               <h1 className="text-xl font-bold text-gray-900">EarthPH</h1>
-              <p className="text-xs text-gray-500">Real-time Earthquake Monitoring</p>
+              <p className="text-xs text-gray-500">Real-time Earthquake Monitoring Philippines</p>
+            </div>
+          </div>
+          
+          <div className="mt-3 hidden sm:block">
+            <p className="text-sm text-gray-600 max-w-4xl">
+              Live earthquake monitoring for the Philippines powered by PHIVOLCS data. 
+              Track seismic activity across Manila, Mindanao, Luzon, Visayas, and all regions 
+              of the Philippine archipelago with real-time updates and interactive maps.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+              <span className="bg-blue-50 px-2 py-1 rounded">Manila Earthquakes</span>
+              <span className="bg-blue-50 px-2 py-1 rounded">Mindanao Seismic Activity</span>
+              <span className="bg-blue-50 px-2 py-1 rounded">Luzon Earthquake Monitoring</span>
+              <span className="bg-blue-50 px-2 py-1 rounded">Visayas Earthquake Alerts</span>
+              <span className="bg-blue-50 px-2 py-1 rounded">PHIVOLCS Data</span>
             </div>
           </div>
         </div>
@@ -120,22 +135,94 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 relative">
         <Map events={events} loading={loading} />
+        
+        {/* Hidden SEO content for search engines */}
+        <div className="sr-only" aria-hidden="true">
+          <h2>Philippines Earthquake Monitoring Information</h2>
+          <p>
+            EarthPH provides comprehensive real-time earthquake monitoring for the entire Philippines archipelago. 
+            Our system integrates with PHIVOLCS (Philippine Institute of Volcanology and Seismology) to deliver 
+            accurate, up-to-date seismic information for all major regions including Metro Manila, Calabarzon, 
+            Central Luzon, Bicol Region, Western Visayas, Central Visayas, Eastern Visayas, Northern Mindanao, 
+            Davao Region, SOCCSKSARGEN, Caraga, BARMM, Cordillera Administrative Region, Ilocos Region, and 
+            Cagayan Valley.
+          </p>
+          
+          <h3>Frequently Asked Questions about Philippines Earthquakes</h3>
+          <dl>
+            <dt>How often do earthquakes occur in the Philippines?</dt>
+            <dd>
+              The Philippines experiences frequent seismic activity due to its location along the Pacific Ring of Fire. 
+              Minor earthquakes occur daily, while significant earthquakes (magnitude 5.0+) happen several times per month.
+            </dd>
+            
+            <dt>Which areas in the Philippines are most prone to earthquakes?</dt>
+            <dd>
+              Metro Manila, Mindanao, particularly Davao Region, and areas along major fault lines like the 
+              West Valley Fault and East Valley Fault are among the most seismically active regions in the Philippines.
+            </dd>
+            
+            <dt>What should I do during an earthquake in the Philippines?</dt>
+            <dd>
+              Follow the Drop, Cover, and Hold On protocol. Stay away from windows and heavy objects. 
+              After the shaking stops, check for injuries and hazards, then evacuate if necessary following 
+              local emergency procedures.
+            </dd>
+            
+            <dt>How accurate is PHIVOLCS earthquake data?</dt>
+            <dd>
+              PHIVOLCS maintains a comprehensive network of seismological stations across the Philippines, 
+              providing highly accurate and timely earthquake information typically within minutes of occurrence.
+            </dd>
+          </dl>
+          
+          <h3>Philippine Earthquake Preparedness</h3>
+          <p>
+            Earthquake preparedness is crucial for residents of the Philippines. Create an emergency kit, 
+            develop a family emergency plan, secure heavy furniture, and stay informed about seismic activity 
+            in your area through reliable sources like EarthPH and PHIVOLCS.
+          </p>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-3 px-4 text-center text-sm">
-        <p>
-          Data provided by{' '}
-          <a 
-            href="https://earthquake.phivolcs.dost.gov.ph/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-primary-400 hover:text-primary-300 underline"
-          >
-            PHIVOLCS
-          </a>
-          {' '}· Philippine Earthquake Monitoring
-        </p>
+      <footer className="bg-gray-800 text-white py-4 px-4 text-center">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-3">
+            <p className="text-sm mb-2">
+              Earthquake data provided by{' '}
+              <a 
+                href="https://earthquake.phivolcs.dost.gov.ph/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary-400 hover:text-primary-300 underline"
+              >
+                PHIVOLCS (Philippine Institute of Volcanology and Seismology)
+              </a>
+              {' '}· Real-time Philippine Earthquake Monitoring System
+            </p>
+            
+            <div className="text-xs text-gray-400 space-y-1">
+              <p>
+                Covering all regions: Metro Manila, Calabarzon, Central Luzon, Bicol Region, 
+                Western Visayas, Central Visayas, Eastern Visayas, Northern Mindanao, 
+                Davao Region, SOCCSKSARGEN, Caraga, BARMM, Cordillera, Ilocos, Cagayan Valley
+              </p>
+              <p>
+                Earthquake preparedness • Seismic monitoring • Disaster risk reduction • 
+                Emergency response • Philippine geology • Tectonic activity monitoring
+              </p>
+              <p className="font-medium">
+                Stay informed, stay safe. Monitor earthquakes in the Philippines with EarthPH.
+              </p>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-700 pt-3 text-xs text-gray-400">
+            <p>&copy; 2025 EarthPH. Real-time earthquake monitoring for the Philippines.</p>
+            <p>Educational and informational purposes. For emergency situations, contact local authorities.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );

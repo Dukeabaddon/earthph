@@ -1,26 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-PH" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Real-time earthquake monitoring system for the Philippines using PHIVOLCS data" />
-    <meta name="keywords" content="earthquake, philippines, phivolcs, monitoring, real-time, seismic" />
-    <meta name="author" content="Aaron" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-language" content="en-PH" />
     
-    <!-- Open Graph / Facebook -->
+    <title>EarthPH - Real-time Earthquake Monitoring Philippines | PHIVOLCS Data</title>
+    <meta name="description" content="Real-time earthquake monitoring for Philippines. Live PHIVOLCS data, interactive maps, and instant alerts for seismic activity across the archipelago. Track earthquakes in Manila, Mindanao, Luzon, and Visayas." />
+    <meta name="keywords" content="earthquake Philippines, PHIVOLCS, seismic monitoring, real-time earthquake data, Philippine earthquakes, disaster preparedness, earthquake alerts, Manila earthquake, Mindanao earthquake, Luzon seismic, Visayas earthquake" />
+    <meta name="author" content="EarthPH Development Team" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://earth-ph.vercel.app/" />
+    
+    <meta name="geo.region" content="PH" />
+    <meta name="geo.country" content="Philippines" />
+    <meta name="geo.placename" content="Philippines" />
+    <meta name="ICBM" content="12.8797, 121.7740" />
+    
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="EarthPH - Philippines Earthquake Monitoring" />
-    <meta property="og:description" content="Real-time earthquake data from PHIVOLCS" />
+    <meta property="og:title" content="EarthPH - Real-time Earthquake Monitoring Philippines" />
+    <meta property="og:description" content="Live earthquake monitoring for Philippines with PHIVOLCS data. Interactive maps showing real-time seismic activity across the archipelago." />
+    <meta property="og:url" content="https://earth-ph.vercel.app/" />
+    <meta property="og:site_name" content="EarthPH" />
+    <meta property="og:image" content="https://earth-ph.vercel.app/og-earthquake-map.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="EarthPH Interactive Earthquake Map showing real-time seismic activity in Philippines" />
+    <meta property="og:locale" content="en_PH" />
     
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="EarthPH - Philippines Earthquake Monitoring" />
-    <meta name="twitter:description" content="Real-time earthquake data from PHIVOLCS" />
+    <meta name="twitter:title" content="EarthPH - Real-time Earthquake Monitoring Philippines" />
+    <meta name="twitter:description" content="Live earthquake monitoring for Philippines with PHIVOLCS data. Interactive maps showing real-time seismic activity." />
+    <meta name="twitter:image" content="https://earth-ph.vercel.app/twitter-card.png" />
+    <meta name="twitter:image:alt" content="EarthPH Interactive Earthquake Map" />
+    <meta name="twitter:site" content="@earthph" />
+    <meta name="twitter:creator" content="@earthph" />
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
     
-    <title>EarthPH - Philippines Earthquake Monitoring</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//earthquake.phivolcs.dost.gov.ph" />
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://earth-ph.vercel.app/#webapp",
+          "name": "EarthPH",
+          "alternateName": "EarthPH Earthquake Monitor",
+          "description": "Real-time earthquake monitoring system for the Philippines using PHIVOLCS data with interactive maps and instant alerts",
+          "url": "https://earth-ph.vercel.app/",
+          "applicationCategory": "Emergency Management",
+          "operatingSystem": "Web Browser",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "featureList": [
+            "Real-time earthquake monitoring",
+            "Interactive seismic maps",
+            "PHIVOLCS data integration",
+            "Mobile responsive design",
+            "Instant earthquake alerts"
+          ],
+          "screenshot": "https://earth-ph.vercel.app/screenshot.png",
+          "browserRequirements": "Requires JavaScript and modern browser",
+          "softwareVersion": "1.0.0"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://earth-ph.vercel.app/#organization",
+          "name": "EarthPH",
+          "description": "Earthquake monitoring platform for the Philippines",
+          "url": "https://earth-ph.vercel.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://earth-ph.vercel.app/logo.png",
+            "width": 512,
+            "height": 512
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "technical support",
+            "url": "https://earth-ph.vercel.app/"
+          },
+          "foundingLocation": {
+            "@type": "Place",
+            "name": "Philippines"
+          },
+          "areaServed": {
+            "@type": "Place",
+            "name": "Philippines"
+          }
+        },
+        {
+          "@type": "Place",
+          "@id": "https://earth-ph.vercel.app/#place",
+          "name": "Philippines",
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "12.8797",
+            "longitude": "121.7740"
+          },
+          "containedInPlace": {
+            "@type": "Place",
+            "name": "Southeast Asia"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://earth-ph.vercel.app/#website",
+          "url": "https://earth-ph.vercel.app/",
+          "name": "EarthPH",
+          "description": "Real-time earthquake monitoring for Philippines",
+          "publisher": {
+            "@id": "https://earth-ph.vercel.app/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://earth-ph.vercel.app/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          },
+          "inLanguage": "en-PH"
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://earth-ph.vercel.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How often do earthquakes occur in the Philippines?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The Philippines experiences frequent seismic activity due to its location along the Pacific Ring of Fire. Minor earthquakes occur daily, while significant earthquakes (magnitude 5.0+) happen several times per month."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which areas in the Philippines are most prone to earthquakes?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Metro Manila, Mindanao particularly Davao Region, and areas along major fault lines like the West Valley Fault and East Valley Fault are among the most seismically active regions in the Philippines."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What should I do during an earthquake in the Philippines?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Follow the Drop, Cover, and Hold On protocol. Stay away from windows and heavy objects. After the shaking stops, check for injuries and hazards, then evacuate if necessary following local emergency procedures."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How accurate is PHIVOLCS earthquake data?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "PHIVOLCS maintains a comprehensive network of seismological stations across the Philippines, providing highly accurate and timely earthquake information typically within minutes of occurrence."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9SVYSRFWJW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-9SVYSRFWJW', {
+        page_title: 'EarthPH - Earthquake Monitoring',
+        page_location: 'https://earth-ph.vercel.app/',
+        content_group1: 'Emergency Services',
+        content_group2: 'Philippines'
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

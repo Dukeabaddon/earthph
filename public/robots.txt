@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+
+# Allow search engines to crawl API for data freshness
+Allow: /api/events
+
+# Disallow admin and internal API endpoints
+Disallow: /api/scrape
+Disallow: /api/cleanup
+Disallow: /.vercel/
+Disallow: /node_modules/
+Disallow: /src/
+Disallow: /tests/
+Disallow: /docs/
+Disallow: /Instructions/
+
+# Sitemap location
+Sitemap: https://earth-ph.vercel.app/sitemap.xml
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
+
+# Special rules for specific search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
