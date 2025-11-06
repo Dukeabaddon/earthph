@@ -189,39 +189,37 @@ function App() {
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-4 px-4 text-center">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-3">
-            {/* SEO-optimized content - visually hidden but accessible to search engines */}
-            <p className="text-sm mb-2 sr-only" aria-hidden="true">
-              Earthquake data provided by{' '}
-              <a 
-                href="https://earthquake.phivolcs.dost.gov.ph/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary-400 hover:text-primary-300 underline"
-              >
-                PHIVOLCS (Philippine Institute of Volcanology and Seismology)
-              </a>
-              {' '}· Real-time Philippine Earthquake Monitoring System
+          {/* SEO-optimized content - visually hidden but accessible to search engines */}
+          <p className="sr-only" aria-hidden="true">
+            Earthquake data provided by{' '}
+            <a 
+              href="https://earthquake.phivolcs.dost.gov.ph/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 underline"
+            >
+              PHIVOLCS (Philippine Institute of Volcanology and Seismology)
+            </a>
+            {' '}· Real-time Philippine Earthquake Monitoring System
+          </p>
+          
+          {/* SEO-optimized content - visually hidden but accessible to search engines */}
+          <div className="sr-only" aria-hidden="true">
+            <p>
+              Covering all regions: Metro Manila, Calabarzon, Central Luzon, Bicol Region, 
+              Western Visayas, Central Visayas, Eastern Visayas, Northern Mindanao, 
+              Davao Region, SOCCSKSARGEN, Caraga, BARMM, Cordillera, Ilocos, Cagayan Valley
             </p>
-            
-            {/* SEO-optimized content - visually hidden but accessible to search engines */}
-            <div className="sr-only" aria-hidden="true">
-              <p>
-                Covering all regions: Metro Manila, Calabarzon, Central Luzon, Bicol Region, 
-                Western Visayas, Central Visayas, Eastern Visayas, Northern Mindanao, 
-                Davao Region, SOCCSKSARGEN, Caraga, BARMM, Cordillera, Ilocos, Cagayan Valley
-              </p>
-              <p>
-                Earthquake preparedness • Seismic monitoring • Disaster risk reduction • 
-                Emergency response • Philippine geology • Tectonic activity monitoring
-              </p>
-              <p className="font-medium">
-                Stay informed, stay safe. Monitor earthquakes in the Philippines with EarthPH.
-              </p>
-            </div>
+            <p>
+              Earthquake preparedness • Seismic monitoring • Disaster risk reduction • 
+              Emergency response • Philippine geology • Tectonic activity monitoring
+            </p>
+            <p className="font-medium">
+              Stay informed, stay safe. Monitor earthquakes in the Philippines with EarthPH.
+            </p>
           </div>
           
-          <div className="border-t border-gray-700 pt-3 text-xs text-gray-400">
+          <div className="text-xs text-gray-400">
             <p>&copy; 2025 EarthPH. Real-time earthquake monitoring for the Philippines.</p>
             <p>Educational and informational purposes. For emergency situations, contact local authorities.</p>
           </div>
