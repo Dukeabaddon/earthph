@@ -190,7 +190,8 @@ function App() {
       <footer className="bg-gray-800 text-white py-4 px-4 text-center">
         <div className="max-w-7xl mx-auto">
           <div className="mb-3">
-            <p className="text-sm mb-2">
+            {/* SEO-optimized content - visually hidden but accessible to search engines */}
+            <p className="text-sm mb-2 sr-only" aria-hidden="true">
               Earthquake data provided by{' '}
               <a 
                 href="https://earthquake.phivolcs.dost.gov.ph/" 
