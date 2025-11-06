@@ -115,7 +115,8 @@ function App() {
             </div>
           </div>
           
-          <div className="mt-3 hidden sm:block">
+          {/* SEO-optimized content - visually hidden but indexed by search engines */}
+          <div className="sr-only" aria-hidden="true">
             <p className="text-sm text-gray-600 max-w-4xl">
               Live earthquake monitoring for the Philippines powered by PHIVOLCS data. 
               Track seismic activity across Manila, Mindanao, Luzon, Visayas, and all regions 
@@ -202,7 +203,8 @@ function App() {
               {' '}· Real-time Philippine Earthquake Monitoring System
             </p>
             
-            <div className="text-xs text-gray-400 space-y-1">
+            {/* SEO-optimized content - visually hidden but accessible to search engines */}
+            <div className="sr-only" aria-hidden="true">
               <p>
                 Covering all regions: Metro Manila, Calabarzon, Central Luzon, Bicol Region, 
                 Western Visayas, Central Visayas, Eastern Visayas, Northern Mindanao, 

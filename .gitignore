@@ -49,3 +49,4 @@ scripts/test*.js
 Instructions/
 docs/
 DEPLOYMENT.md
+.vercel
