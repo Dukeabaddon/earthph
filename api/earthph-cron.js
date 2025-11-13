@@ -81,26 +81,61 @@ export default async function handler(req, res) {
     );
 
     // Scrape PHIVOLCS
+    console.log('[CRON] Fetching data from PHIVOLCS...');
     const response = await axios.get(PHIVOLCS_URL, { timeout: 8000 });
     const $ = cheerio.load(response.data);
     const events = [];
     const table = $('table').eq(2).find('tbody');
+    console.log('[CRON] Parsing earthquake data...');
 
     table.find('tr').each((index, row) => {
+      // Skip header row (first row)
       if (index === 0) return;
+      if (index >= 501) return false; // Limit to 500 events
+
       const cells = $(row).find('td');
-      const occurred_at = parsePhivolcsDateTime(cells.eq(0).text());
-      const latitude = parseFloat(cells.eq(1).text());
-      const longitude = parseFloat(cells.eq(2).text());
+      if (cells.length < 6) return;
+
+      const dateTimeRaw = $(cells[0]).text().trim();
+      const latitudeRaw = $(cells[1]).text().trim();
+      const longitudeRaw = $(cells[2]).text().trim();
+      const depthRaw = $(cells[3]).text().trim();
+      const magnitudeRaw = $(cells[4]).text().trim();
+      const locationText = $(cells[5]).text().trim();
+
+      // Parse date
+      const occurred_at = parsePhivolcsDateTime(dateTimeRaw);
+      if (!occurred_at) return;
+
+      const latitude = parseFloat(latitudeRaw);
+      const longitude = parseFloat(longitudeRaw);
+      const magnitude = parseFloat(magnitudeRaw);
+      const depth_km = parseFloat(depthRaw) || null;
+
+      if (isNaN(latitude) || isNaN(longitude) || isNaN(magnitude)) return;
+      if (latitude < 4.0 || latitude > 22.0 || longitude < 116.0 || longitude > 128.0) return;
+
       const id = generateEventId(occurred_at, latitude, longitude);
-      events.push({ id, occurred_at, latitude, longitude });
+
+      events.push({
+        id,
+        occurred_at,
+        latitude,
+        longitude,
+        depth_km,
+        magnitude,
+        location_text: locationText
+      });
     });
+
+    console.log(`[CRON] Parsed ${events.length} events`);
 
     // Upsert events
     if (events.length > 0) {
       const { data, error } = await supabase.from('events').upsert(events).select();
       if (error) throw error;
       eventsUpserted = data?.length || events.length;
+      console.log(`[CRON] Upserted ${eventsUpserted} events`);
     }
 
     // Delete old events
