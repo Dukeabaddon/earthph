@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
 
     // Scrape PHIVOLCS
     console.log('[CRON] Fetching data from PHIVOLCS...');
-    const response = await axios.get(PHIVOLCS_URL, { timeout: 8000 });
+    const response = await axios.get(PHIVOLCS_URL, { timeout: 15000 });
     const $ = cheerio.load(response.data);
     const events = [];
     const table = $('table').eq(2).find('tbody');
