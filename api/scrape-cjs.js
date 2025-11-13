@@ -132,12 +132,17 @@ module.exports = async function handler(req, res) {
       
       const occurred_at = parsePhivolcsDateTime(dateTimeRaw);
       if (!occurred_at) return;
-      
+
+      // Skip events that occurred more than 24 hours ago
+      const eventTime = new Date(occurred_at).getTime();
+      const cutoffTime = Date.now() - 24 * 60 * 60 * 1000;
+      if (eventTime < cutoffTime) return;
+
       const latitude = parseFloat(latitudeRaw);
       const longitude = parseFloat(longitudeRaw);
       const magnitude = parseFloat(magnitudeRaw);
       const depth_km = parseFloat(depthRaw) || null;
-      
+
       if (isNaN(latitude) || isNaN(longitude) || isNaN(magnitude)) return;
       if (latitude < 4.0 || latitude > 22.0 || longitude < 116.0 || longitude > 128.0) return;
       
