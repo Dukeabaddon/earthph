@@ -1,4 +1,3 @@
-// Using CommonJS for Vercel compatibility
 const { createClient } = require('@supabase/supabase-js');
 
 // Security Configuration
@@ -13,7 +12,7 @@ const ALLOWED_ORIGINS = [
 // Rate limiting configuration
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 60000;
-const MAX_REQUESTS_PER_MINUTE = 100; // Increased for public access
+const MAX_REQUESTS_PER_MINUTE = 100;
 
 function checkRateLimit(ip) {
   const now = Date.now();
@@ -30,10 +29,6 @@ function checkRateLimit(ip) {
   return { allowed: true, remaining: MAX_REQUESTS_PER_MINUTE - recentRequests.length };
 }
 
-/**
- * Set security headers for production hardening
- * Protects against XSS, clickjacking, MIME-sniffing attacks
- */
 function setSecurityHeaders(res, origin) {
   // CORS - Allow only whitelisted origins
   if (origin) {
@@ -54,7 +49,6 @@ function setSecurityHeaders(res, origin) {
     }
   }
   
-  // Security headers (OWASP recommendations)
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -64,9 +58,6 @@ function setSecurityHeaders(res, origin) {
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 }
 
-/**
- * Log request for security monitoring and debugging
- */
 function logRequest(req, res, duration, error = null) {
   const logEntry = {
     timestamp: new Date().toISOString(),
@@ -82,7 +73,6 @@ function logRequest(req, res, duration, error = null) {
   
   console.log(JSON.stringify(logEntry));
   
-  // Alert on suspicious activity
   if (res.statusCode === 429) {
     console.warn(`[SECURITY] Rate limit exceeded: IP=${logEntry.ip}, UA=${logEntry.userAgent}`);
   }
@@ -96,7 +86,6 @@ module.exports = async function handler(req, res) {
   const origin = req.headers['origin'] || req.headers['referer'];
   
   try {
-    // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
       setSecurityHeaders(res, origin);
       return res.status(204).end();
@@ -117,10 +106,8 @@ module.exports = async function handler(req, res) {
     // Set security headers for all responses
     setSecurityHeaders(res, origin);
     
-    // Get client IP for rate limiting
     const ip = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
     
-    // Check rate limit
     const rateLimit = checkRateLimit(ip);
     if (!rateLimit.allowed) {
       const duration = Date.now() - startTime;
@@ -132,7 +119,6 @@ module.exports = async function handler(req, res) {
       });
     }
     
-    // Get Supabase credentials from environment
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
     
@@ -164,7 +150,6 @@ module.exports = async function handler(req, res) {
       throw error;
     }
     
-    // Find the most recent created_at timestamp
     const lastUpdated = data && data.length > 0 
       ? data.reduce((latest, event) => {
           const eventCreated = new Date(event.created_at).getTime();
@@ -172,7 +157,6 @@ module.exports = async function handler(req, res) {
         }, 0)
       : Date.now();
     
-    // Transform data to match frontend expectations
     const events = (data || []).map(event => ({
       id: event.id,
       datetime: event.occurred_at,
@@ -185,7 +169,6 @@ module.exports = async function handler(req, res) {
     
     const responseTime = Date.now() - startTime;
     
-    // Set cache headers (60s to match frontend polling and cron frequency)
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=15');
     res.setHeader('X-Response-Time', `${responseTime}ms`);
     res.setHeader('X-Rate-Limit-Remaining', rateLimit.remaining.toString());

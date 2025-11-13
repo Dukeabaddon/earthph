@@ -1,14 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-/**
- * Error Boundary Component
- * 
- * Catches JavaScript errors anywhere in the child component tree,
- * logs those errors, and displays a fallback UI instead of crashing.
- * 
- * @see https://reactjs.org/docs/error-boundaries.html
- */
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -20,16 +13,12 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
     // Log error details for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
-    // You can also log to an error reporting service here
-    // Example: Sentry.captureException(error, { extra: errorInfo });
     
     this.setState({
       error,
@@ -44,7 +33,6 @@ class ErrorBoundary extends React.Component {
         return this.props.fallback;
       }
 
-      // Default fallback UI
       return (
         <div className="flex items-center justify-center h-full w-full bg-gray-50">
           <div className="text-center p-8 max-w-md">
