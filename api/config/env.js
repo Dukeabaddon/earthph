@@ -72,7 +72,7 @@ export function getConfig() {
     // Load environment variables (only executes on first call)
     const url = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL', true);
     const anonKey = getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', true);
-    const serviceKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', true);
+    const serviceKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY', 'VITE_SUPABASE_SERVICE_ROLE_KEY', true);
     
     // Validate the values
     validateUrl(url, 'SUPABASE_URL');

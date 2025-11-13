@@ -6,7 +6,43 @@ import { getConfig } from './config/env.js';
 const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 
 function parsePhivolcsDateTime(dateTimeStr) {
-  // Parse PHIVOLCS date/time
+  try {
+    const [datePart, timePart] = dateTimeStr.split(' - ');
+    if (!datePart || !timePart) return null;
+
+    const dateTokens = datePart.trim().split(' ');
+    if (dateTokens.length !== 3) return null;
+
+    const day = parseInt(dateTokens[0]);
+    const monthName = dateTokens[1];
+    const year = parseInt(dateTokens[2]);
+
+    const months = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4,
+      'May': 5, 'June': 6, 'July': 7, 'August': 8,
+      'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+
+    const month = months[monthName];
+    if (!month || !day || !year) return null;
+
+    const timeMatch = timePart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!timeMatch) return null;
+
+    let hours = parseInt(timeMatch[1]);
+    const minutes = parseInt(timeMatch[2]);
+    const meridiem = timeMatch[3].toUpperCase();
+
+    if (meridiem === 'PM' && hours !== 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+
+    const pstDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    pstDate.setUTCHours(pstDate.getUTCHours() - 8);
+
+    return pstDate.toISOString();
+  } catch (err) {
+    return null;
+  }
 }
 
 function generateEventId(occurred_at, latitude, longitude) {
