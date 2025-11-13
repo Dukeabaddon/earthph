@@ -34,11 +34,11 @@ function logRequest(req, res, duration, scraped = 0, error = null) {
     duration: `${duration}ms`,
     eventsScraped: scraped,
     error: error ? error.message : null,
-    authenticated: !!req.headers['x-vercel-protection-bypass']
+    authenticated: !!req.headers['x-earthph-cron-secret']
   };
-  
+
   console.log(JSON.stringify(logEntry));
-  
+
   // Alert on security issues
   if (res.statusCode === 401) {
     console.warn(`[SECURITY] Unauthorized scraper access attempt: IP=${logEntry.ip}, UA=${logEntry.userAgent}`);
@@ -72,29 +72,29 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Validate bypass secret
-    const bypassSecret = req.headers['x-vercel-protection-bypass'];
-    const validSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-    
+    // Validate cron secret
+    const cronSecret = req.headers['x-earthph-cron-secret'];
+    const validSecret = process.env.EARTHPH_CRON_SECRET;
+
     if (!validSecret) {
       const duration = Date.now() - startTime;
       res.statusCode = 500;
       logRequest(req, res, duration, 0, new Error('Configuration missing'));
-      return res.status(500).json({ 
+      return res.status(500).json({
         success: false,
         error: 'Configuration Error',
-        message: 'VERCEL_AUTOMATION_BYPASS_SECRET not configured'
+        message: 'EARTHPH_CRON_SECRET not configured'
       });
     }
-    
-    if (!bypassSecret || bypassSecret !== validSecret) {
+
+    if (!cronSecret || cronSecret !== validSecret) {
       const duration = Date.now() - startTime;
       res.statusCode = 401;
       logRequest(req, res, duration, 0, new Error('Unauthorized access attempt'));
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         error: 'Unauthorized',
-        message: 'Valid x-vercel-protection-bypass header required'
+        message: 'Valid x-earthph-cron-secret header required'
       });
     }
 
@@ -174,6 +174,7 @@ module.exports = async function handler(req, res) {
     console.log(`[${correlationId}] Parsed ${events.length} events`);
 
     // Upsert to database (Supabase v2 syntax - uses primary key automatically)
+    let eventsUpserted = 0;
     if (events.length > 0) {
       const { data, error } = await supabase.from('events').upsert(events).select();
       if (error) {
@@ -185,7 +186,23 @@ module.exports = async function handler(req, res) {
         });
         throw error;
       }
-      console.log(`[${correlationId}] Successfully upserted ${data?.length || events.length} events`);
+      eventsUpserted = data?.length || events.length;
+      console.log(`[${correlationId}] Successfully upserted ${eventsUpserted} events`);
+    }
+
+    // Delete old events (older than 24 hours based on created_at)
+    console.log(`[${correlationId}] Cleaning up old events...`);
+    const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { error: deleteError, count: deletedCount } = await supabase
+      .from('events')
+      .delete()
+      .lt('created_at', cutoffTime);
+
+    if (deleteError) {
+      console.error(`[${correlationId}] Cleanup failed:`, deleteError);
+      // Don't throw - cleanup failure shouldn't fail the whole operation
+    } else {
+      console.log(`[${correlationId}] Deleted ${deletedCount || 0} old events`);
     }
 
     const duration = Date.now() - startTime;
@@ -193,8 +210,9 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: `Scraped ${events.length} events`,
-      eventsScraped: events.length,
+      message: `Scraped ${events.length} events, deleted ${deletedCount || 0} old events`,
+      eventsScraped: eventsUpserted,
+      eventsDeleted: deletedCount || 0,
       duration: `${duration}ms`,
       correlationId
     });

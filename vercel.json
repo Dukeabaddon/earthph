@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/earthph-cron-cjs.js": {
+    "api/scrape-cjs.js": {
       "maxDuration": 30,
       "memory": 1024
     },
