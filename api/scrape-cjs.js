@@ -182,13 +182,13 @@ module.exports = async function handler(req, res) {
       console.log(`[${correlationId}] Successfully upserted ${eventsUpserted} events`);
     }
 
-    // Delete old events
+    // Delete old events (earthquakes that occurred more than 24 hours ago)
     console.log(`[${correlationId}] Cleaning up old events...`);
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { error: deleteError, count: deletedCount } = await supabase
       .from('events')
       .delete()
-      .lt('created_at', cutoffTime);
+      .lt('occurred_at', cutoffTime);
 
     if (deleteError) {
       console.error(`[${correlationId}] Cleanup failed:`, deleteError);
