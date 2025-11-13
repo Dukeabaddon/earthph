@@ -146,20 +146,44 @@ git push origin main
 ### Problem History:
 1. ❌ **Initial Error**: "TypeError: fetch failed" → Fixed by correcting Supabase URL
 2. ❌ **Second Error**: "new row violates row-level security policy" → Fixed by adding SERVICE_ROLE_KEY
-3. ❌ **Final Error**: "ON CONFLICT DO UPDATE command cannot affect row a second time" → **Fixed by deduplicating events**
+3. ❌ **Third Error**: "ON CONFLICT DO UPDATE command cannot affect row a second time" → Fixed by deduplicating events
+4. ❌ **Fourth Issue**: Old events from November 9 still in database → **Fixed by filtering during scrape**
 
 ### Final Solution:
-**Deduplicate events before upsert** to prevent PostgreSQL conflict errors when multiple events have the same ID.
+1. **Deduplicate events before upsert** to prevent PostgreSQL conflict errors
+2. **Skip scraping events that occurred >24 hours ago** to prevent re-inserting old data
+3. **Delete events based on occurred_at** instead of created_at
 
 ### Current Status:
-- ✅ Frontend working (66 events displayed)
-- ✅ Cron job working (497 events scraped, 1 duplicate removed)
-- ✅ Auto-cleanup ready (will delete old events on next run)
+- ✅ Frontend working (68 events displayed)
+- ✅ Cron job working (55 events scraped - only recent ones!)
+- ✅ Auto-cleanup working (filters old events during scrape)
 - ✅ All systems operational
+
+### Key Changes Made:
+```javascript
+// 1. Skip old events during scraping
+const eventTime = new Date(occurred_at).getTime();
+const cutoffTime = Date.now() - 24 * 60 * 60 * 1000;
+if (eventTime < cutoffTime) return; // Don't scrape events >24h old
+
+// 2. Deduplicate before upsert
+const uniqueEvents = Array.from(
+  new Map(events.map(event => [event.id, event])).values()
+);
+
+// 3. Delete based on occurred_at
+.delete().lt('occurred_at', cutoffTime)
+```
+
+### Results:
+- **Before**: 497 events scraped (including 4-day-old earthquakes)
+- **After**: 55 events scraped (only last 24 hours)
+- **Database**: Cleaned from 900 → 68 events
 
 ### Next Steps:
 1. Monitor cron job executions in cron-job.org dashboard
-2. Verify old events are being deleted after 24 hours
+2. Verify the system maintains ~50-70 events (24-hour rolling window)
 3. (Optional) Clean up obsolete API test files
 4. (Optional) Adjust cron schedule if needed (currently every 1 minute)
 
