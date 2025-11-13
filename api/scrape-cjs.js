@@ -1,4 +1,3 @@
-// Using CommonJS for Vercel compatibility
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { createClient } = require('@supabase/supabase-js');
@@ -7,11 +6,8 @@ const PHIVOLCS_URL = 'https://earthquake.phivolcs.dost.gov.ph/';
 let lastScrapeTime = 0;
 const MIN_INTERVAL = 5 * 60 * 1000;
 
-/**
- * Set security headers for protected scraper endpoint
- */
+
 function setSecurityHeaders(res) {
-  // Security headers (OWASP recommendations)
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -20,9 +16,6 @@ function setSecurityHeaders(res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 }
 
-/**
- * Log scraper request for security monitoring
- */
 function logRequest(req, res, duration, scraped = 0, error = null) {
   const logEntry = {
     timestamp: new Date().toISOString(),
@@ -39,7 +32,6 @@ function logRequest(req, res, duration, scraped = 0, error = null) {
 
   console.log(JSON.stringify(logEntry));
 
-  // Alert on security issues
   if (res.statusCode === 401) {
     console.warn(`[SECURITY] Unauthorized scraper access attempt: IP=${logEntry.ip}, UA=${logEntry.userAgent}`);
   }
@@ -53,15 +45,12 @@ module.exports = async function handler(req, res) {
   const correlationId = `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   try {
-    // Set security headers
     setSecurityHeaders(res);
     
-    // Handle OPTIONS preflight
     if (req.method === 'OPTIONS') {
       return res.status(204).end();
     }
     
-    // Only allow GET requests
     if (req.method !== 'GET') {
       const duration = Date.now() - startTime;
       logRequest(req, res, duration, 0, new Error('Method not allowed'));
@@ -72,7 +61,6 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Validate cron secret
     const cronSecret = req.headers['x-earthph-cron-secret'];
     const validSecret = process.env.EARTHPH_CRON_SECRET;
 
@@ -98,7 +86,6 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Get Supabase credentials from environment
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
@@ -119,7 +106,6 @@ module.exports = async function handler(req, res) {
 
     console.log(`[${correlationId}] Starting scrape`);
 
-    // Fetch PHIVOLCS data (disable SSL verification due to their certificate issues)
     const https = require('https');
     const response = await axios.get(PHIVOLCS_URL, { 
       timeout: 8000,
@@ -128,13 +114,11 @@ module.exports = async function handler(req, res) {
     const $ = cheerio.load(response.data);
     
     const events = [];
-    // The earthquake table is the 3rd table (index 2) on the page
     const table = $('table').eq(2).find('tbody');
     
     table.find('tr').each((index, row) => {
-      // Skip header row (first row)
       if (index === 0) return;
-      if (index >= 501) return false; // Limit to 500 events
+      if (index >= 501) return false; 
       
       const cells = $(row).find('td');
       if (cells.length < 6) return;
@@ -146,7 +130,6 @@ module.exports = async function handler(req, res) {
       const magnitudeRaw = $(cells[4]).text().trim();
       const locationText = $(cells[5]).text().trim();
       
-      // Parse date
       const occurred_at = parsePhivolcsDateTime(dateTimeRaw);
       if (!occurred_at) return;
       
@@ -173,24 +156,33 @@ module.exports = async function handler(req, res) {
 
     console.log(`[${correlationId}] Parsed ${events.length} events`);
 
-    // Upsert to database (Supabase v2 syntax - uses primary key automatically)
+    // Deduplicate events by ID (prevent "ON CONFLICT DO UPDATE" error)
+    const uniqueEvents = Array.from(
+      new Map(events.map(event => [event.id, event])).values()
+    );
+
+    if (uniqueEvents.length < events.length) {
+      console.log(`[${correlationId}] Removed ${events.length - uniqueEvents.length} duplicate events`);
+    }
+
+    // Upsert to database
     let eventsUpserted = 0;
-    if (events.length > 0) {
-      const { data, error } = await supabase.from('events').upsert(events).select();
+    if (uniqueEvents.length > 0) {
+      const { data, error } = await supabase.from('events').upsert(uniqueEvents).select();
       if (error) {
         console.error(`[${correlationId}] Database upsert failed:`, {
           message: error.message,
           code: error.code,
           details: error.details,
-          eventsCount: events.length
+          eventsCount: uniqueEvents.length
         });
         throw error;
       }
-      eventsUpserted = data?.length || events.length;
+      eventsUpserted = data?.length || uniqueEvents.length;
       console.log(`[${correlationId}] Successfully upserted ${eventsUpserted} events`);
     }
 
-    // Delete old events (older than 24 hours based on created_at)
+    // Delete old events
     console.log(`[${correlationId}] Cleaning up old events...`);
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { error: deleteError, count: deletedCount } = await supabase
@@ -200,19 +192,19 @@ module.exports = async function handler(req, res) {
 
     if (deleteError) {
       console.error(`[${correlationId}] Cleanup failed:`, deleteError);
-      // Don't throw - cleanup failure shouldn't fail the whole operation
     } else {
       console.log(`[${correlationId}] Deleted ${deletedCount || 0} old events`);
     }
 
     const duration = Date.now() - startTime;
-    logRequest(req, res, duration, events.length);
+    logRequest(req, res, duration, uniqueEvents.length);
 
     return res.status(200).json({
       success: true,
-      message: `Scraped ${events.length} events, deleted ${deletedCount || 0} old events`,
+      message: `Scraped ${uniqueEvents.length} events (${events.length - uniqueEvents.length} duplicates removed), deleted ${deletedCount || 0} old events`,
       eventsScraped: eventsUpserted,
       eventsDeleted: deletedCount || 0,
+      duplicatesRemoved: events.length - uniqueEvents.length,
       duration: `${duration}ms`,
       correlationId
     });
