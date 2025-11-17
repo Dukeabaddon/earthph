@@ -81,10 +81,16 @@ function calculateShakingRadius(magnitude, depth, type = 'light') {
  * @returns {L.DivIcon} Leaflet DivIcon
  */
 function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 6) {
+function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 6, isLatest = false) {
   const mag = parseFloat(magnitude);
   let color, size;
 
-  if (mag >= 7.0) {
+  if (isLatest) {
+    // Latest events use green regardless of magnitude
+    color = '#22c55e'; // green-500
+    // slightly larger for visibility
+    size = Math.round(size * 1.25);
+  } else if (mag >= 7.0) {
     color = '#b91c1c'; // Danger-700
     size = 40;
   } else if (mag >= 6.0) {
@@ -262,22 +268,22 @@ export default function Map({ events = [], loading = false }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Identify the 3 most recent earthquakes
+  // Identify the 3 most recent earthquakes by `created_at`
   const recentEventIds = useMemo(() => {
     if (!events || events.length === 0) return new Set();
-    
+
     const sortedByTime = [...events].sort((a, b) => {
-      const timeA = new Date(a.occurred_at).getTime();
-      const timeB = new Date(b.occurred_at).getTime();
+      const timeA = new Date(a.created_at || a.occurred_at).getTime();
+      const timeB = new Date(b.created_at || b.occurred_at).getTime();
       return timeB - timeA; // Most recent first
     });
-    
+
     return new Set(sortedByTime.slice(0, 3).map(e => e.id));
   }, [events]);
 
   // Calculate age in seconds for recent earthquakes
-  const getEventAge = useCallback((occurredAt) => {
-    const eventTime = new Date(occurredAt).getTime();
+  const getEventAge = useCallback((timestamp) => {
+    const eventTime = new Date(timestamp).getTime();
     return Math.floor((currentTime - eventTime) / 1000);
   }, [currentTime]);
 
@@ -309,15 +315,16 @@ export default function Map({ events = [], loading = false }) {
   // Memoize markers to prevent unnecessary re-renders
   const markers = useMemo(() => {
     return sortedEvents.map((event) => {
-      const isRecent = recentEventIds.has(event.id);
-      const eventAge = isRecent ? getEventAge(event.occurred_at) : 0;
-      
+      const isLatest = recentEventIds.has(event.id);
+      const eventTimestamp = event.created_at || event.occurred_at;
+      const eventAge = isLatest ? getEventAge(eventTimestamp) : 0;
+
       return (
         <Marker
           key={event.id}
           position={[event.latitude, event.longitude]}
-          icon={createMagnitudeIcon(event.magnitude, isRecent, eventAge, mapZoom)}
-          zIndexOffset={isRecent ? 2000 : 0} // Recent markers always on top
+          icon={createMagnitudeIcon(event.magnitude, isLatest, eventAge, mapZoom, isLatest)}
+          zIndexOffset={isLatest ? 2000 : 0} // Latest markers always on top
           eventHandlers={{
             click: (e) => handleMarkerClick(event, e)
           }}
@@ -467,6 +474,10 @@ export default function Map({ events = [], loading = false }) {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-primary-500 border-2 border-white" />
             <span>&lt; 4.0 - Minor</span>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#22c55e', border: '2px solid white' }} />
+            <span>Latest - Most recent events</span>
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200">
