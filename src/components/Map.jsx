@@ -1,14 +1,3 @@
-/**
- * Map Component (Part 1/2)
- * 
- * Following frontend-developer.md standards:
- * - Responsive mobile-first design
- * - Accessible keyboard navigation
- * - Performance optimized with lazy loading
- * - Error boundaries for graceful degradation
- * - Memoization for marker rendering
- */
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
@@ -28,30 +17,18 @@ L.Icon.Default.mergeOptions({
 /**
  * Calculate shaking radius based on magnitude and depth
  * Using USGS empirical formulas for MMI intensity zones
- * 
- * Formula: R = 10^(0.5M - offset) × depthFactor
- * - Strong shaking (MMI VI-VII): offset = 1.0
- * - Moderate shaking (MMI IV-V): offset = 0.3
- * - Light shaking (MMI II-III): offset = 0.0
- * 
- * @param {number} magnitude - Earthquake magnitude
- * @param {number} depth - Depth in kilometers
- * @param {string} type - Shaking intensity type ('strong', 'moderate', 'light')
- * @returns {number} Radius in meters
  */
 function calculateShakingRadius(magnitude, depth, type = 'light') {
   const mag = parseFloat(magnitude);
   const depthKm = parseFloat(depth) || 10;
   
-  // Depth adjustment factor
-  // Deeper earthquakes have less surface impact
   let depthFactor = 1.0;
   if (depthKm > 100) {
-    depthFactor = 0.7; // Deep earthquakes: 30% reduction
+    depthFactor = 0.7;
   } else if (depthKm > 50) {
-    depthFactor = 0.85; // Medium depth: 15% reduction
+    depthFactor = 0.85;
   }
-  
+
   // Offset based on shaking intensity
   let offset = 0;
   if (type === 'strong') {
@@ -73,12 +50,6 @@ function calculateShakingRadius(magnitude, depth, type = 'light') {
  * Custom marker icon generator based on magnitude
  * Clean, flat design without shadows
  * With zoom-aware sizing for recent earthquakes
- * 
- * @param {number} magnitude - Earthquake magnitude
- * @param {boolean} isRecent - Whether this is one of the 3 most recent earthquakes
- * @param {number} recentAge - Age in seconds (0-60s = ripple, 60-300s = glow)
- * @param {number} zoom - Current map zoom level (for adaptive sizing)
- * @returns {L.DivIcon} Leaflet DivIcon
  */
 function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 6, isLatest = false) {
   const mag = parseFloat(magnitude);
@@ -86,23 +57,22 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
 
   if (isLatest) {
     // Latest events use green regardless of magnitude
-    color = '#22c55e'; // green-500
-    // slightly larger for visibility
+    color = '#22c55e';
     size = Math.round(size * 1.25);
   } else if (mag >= 7.0) {
-    color = '#b91c1c'; // Danger-700
+    color = '#b91c1c'; 
     size = 40;
   } else if (mag >= 6.0) {
-    color = '#dc2626'; // Danger-600
+    color = '#dc2626';
     size = 36;
   } else if (mag >= 5.0) {
-    color = '#f59e0b'; // Warning-500
+    color = '#f59e0b'; 
     size = 32;
   } else if (mag >= 4.0) {
-    color = '#fbbf24'; // Warning-400
+    color = '#fbbf24';
     size = 28;
   } else {
-    color = '#3b82f6'; // Primary-500
+    color = '#3b82f6';
     size = 24;
   }
 
@@ -110,11 +80,11 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
   if (isRecent) {
     let sizeMultiplier;
     if (zoom < 7) {
-      sizeMultiplier = 2.0; // 100% larger when zoomed out
+      sizeMultiplier = 2.0;
     } else if (zoom < 9) {
-      sizeMultiplier = 1.7; // 70% larger at medium zoom
+      sizeMultiplier = 1.7;
     } else {
-      sizeMultiplier = 1.4; // 40% larger when zoomed in
+      sizeMultiplier = 1.4;
     }
     size = Math.round(size * sizeMultiplier);
   }
@@ -241,11 +211,6 @@ function ZoomTracker({ onZoomChange }) {
 
 /**
  * Map Component - Interactive earthquake visualization
- * 
- * @param {Object} props
- * @param {Array} props.events - Array of earthquake events
- * @param {boolean} props.loading - Loading state
- * @returns {JSX.Element}
  */
 export default function Map({ events = [], loading = false }) {
   const [selectedEvent, setSelectedEvent] = useState(null);
