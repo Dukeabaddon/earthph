@@ -80,7 +80,6 @@ function calculateShakingRadius(magnitude, depth, type = 'light') {
  * @param {number} zoom - Current map zoom level (for adaptive sizing)
  * @returns {L.DivIcon} Leaflet DivIcon
  */
-function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 6) {
 function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 6, isLatest = false) {
   const mag = parseFloat(magnitude);
   let color, size;
