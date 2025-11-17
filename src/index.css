@@ -44,6 +44,40 @@
     animation: markerPulse 2s ease-in-out infinite;
   }
 
+  /* Subtle green pulse for the three latest events (not intrusive) */
+  @keyframes latestPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.9; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .latest-marker {
+    position: relative;
+    z-index: 2100 !important;
+  }
+
+  /* The inner badge (actual marker) should pulse gently */
+  .latest-marker > div {
+    animation: latestPulse 2.2s ease-in-out infinite;
+    box-shadow: 0 2px 8px rgba(34,197,94,0.35);
+    transition: transform 150ms ease-out;
+  }
+
+  /* Add a soft ring behind the marker for emphasis */
+  .latest-marker::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 140%;
+    height: 140%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(rgba(34,197,94,0.18), rgba(34,197,94,0.04));
+    z-index: -1;
+    pointer-events: none;
+  }
+
   @keyframes markerPulse {
     0%, 100% {
       opacity: 1;
@@ -155,6 +189,13 @@
       border: 4px solid #06b6d4 !important;
       box-shadow: 0 0 20px rgba(6, 182, 212, 0.8) !important;
     }
+    /* Disable latest marker animation for reduced-motion users */
+    .latest-marker > div,
+    .latest-marker::before {
+      animation: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
   }
 
   /* Focus visible for accessibility */
@@ -197,6 +238,11 @@
 
   .leaflet-bar {
     @apply shadow-md;
+  }
+  /* Avoid pulsing animations on small/touch devices */
+  .latest-marker > div,
+  .latest-marker::before {
+    animation: none !important;
   }
 }
 

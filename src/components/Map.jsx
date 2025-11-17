@@ -31,11 +31,13 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
   else if (mag >= 5) { color = '#f59e0b'; size = 32; }
   else if (mag >= 4) { color = '#fbbf24'; size = 28; }
 
-  if (isLatest) { color = '#22c55e'; size = Math.round(size * 1.25); }
+  // keep latest markers same size as others but change color and add a class
+  if (isLatest) { color = '#22c55e'; }
   if (isRecent) { const m = zoom < 7 ? 2.0 : (zoom < 9 ? 1.7 : 1.4); size = Math.round(size * m); }
 
   const html = `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;border:2px solid #fff">${mag.toFixed(1)}</div>`;
-  return L.divIcon({ className: 'custom-marker', html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+  const className = `custom-marker ${isLatest ? 'latest-marker' : ''}`.trim();
+  return L.divIcon({ className, html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 }
 
 function MapBoundsController({ events }) {
@@ -184,7 +186,7 @@ function calculateShakingRadius(magnitude, depth, type = 'light') {
   if (depthKm > 100) {
     depthFactor = 0.7; // Deep earthquakes: 30% reduction
   } else if (depthKm > 50) {
-    depthFactor = 0.85; // Medium depth: 15% reduction
+    if (isLatest) { color = '#22c55e'; }
   }
   
   // Offset based on shaking intensity
@@ -238,10 +240,9 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
     size = 24;
   }
 
-  // Override for the latest events: use green and increase visibility
+  // Override for the latest events: use green (keep size consistent)
   if (isLatest) {
     color = '#22c55e'; // green-500
-    size = Math.round(size * 1.25);
   }
 
   // Zoom-aware sizing for recent earthquakes (larger when zoomed out)
@@ -312,7 +313,6 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
 
     if (isLatest) {
       color = '#22c55e';
-      size = Math.round(size * 1.25);
     }
 
     if (isRecent) {
@@ -338,7 +338,7 @@ function createMagnitudeIcon(magnitude, isRecent = false, recentAge = 0, zoom = 
     }
 
     return L.divIcon({
-      className: `custom-marker ${recentClass}`,
+      className: `custom-marker ${recentClass} ${isLatest ? 'latest-marker' : ''}`,
       html: `
         <div style="position:relative;background-color:${color};width:${size}px;height:${size}px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:${size > 30 ? '14px' : '12px'};cursor:pointer;transition:transform 0.15s ease-out;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"><div>${mag.toFixed(1)}</div>${badgeHtml}</div>
       `,
