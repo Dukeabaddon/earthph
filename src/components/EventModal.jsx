@@ -53,6 +53,25 @@ export default function EventModal({ event, isOpen, onClose, position }) {
     };
   }, [isOpen, handleKeyDown]);
 
+  // Outside click handler: allows map wheel/pinch events to pass through
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (!isOpen) return;
+      const modal = modalRef.current;
+      if (modal && !modal.contains(e.target)) {
+        onClose();
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !event) return null;
 
   // Date validation 
@@ -72,10 +91,11 @@ export default function EventModal({ event, isOpen, onClose, position }) {
 
   return (
     <>
+      {/* Backdrop allows pointer events to pass to map (no blocking of wheel/pinch). Outside clicks handled by document listener. */}
       <div 
         className="fixed inset-0 z-[1100]"
-        onClick={onClose}
         aria-hidden="true"
+        style={{ pointerEvents: 'none' }}
       />
       <div
         ref={modalRef}
